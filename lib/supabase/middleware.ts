@@ -39,8 +39,11 @@ export async function updateSession(request: NextRequest) {
 
   // Protected routes check
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || 
-                      request.nextUrl.pathname.startsWith('/auth');
-  const isDashboardRoute = !isAuthRoute && request.nextUrl.pathname !== '/';
+                      request.nextUrl.pathname.startsWith('/auth') ||
+                      request.nextUrl.pathname.startsWith('/pending-approval') ||
+                      request.nextUrl.pathname.startsWith('/unauthorized');
+  const isPublicRoute = request.nextUrl.pathname === '/' && !user;
+  const isDashboardRoute = !isAuthRoute && !isPublicRoute;
 
   if (!user && isDashboardRoute) {
     // Redirect to login if not authenticated
