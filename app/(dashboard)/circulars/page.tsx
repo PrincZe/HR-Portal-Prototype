@@ -1,9 +1,24 @@
-export default function CircularsPage() {
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/auth';
+import { CircularsClient } from '@/components/circulars/circulars-client';
+
+export default async function CircularsPage() {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Circulars</h1>
-      <p className="mt-4 text-gray-600">Browse HRL, HR OPS, and PSD circulars</p>
-      {/* Circulars feature will be implemented in Phase 6 */}
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Circulars</h1>
+        <p className="text-muted-foreground mt-2">
+          Browse HRL, HR OPS, and PSD circulars
+        </p>
+      </div>
+
+      <CircularsClient user={user} />
     </div>
   );
 }
