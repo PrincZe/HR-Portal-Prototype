@@ -26,6 +26,7 @@ const allNavigation = [
   { name: 'HRL Meetings', href: '/hrl-meetings', icon: Calendar, roles: ['system_admin', 'hrl_ministry', 'hrl_statboard', 'hrl_rep_ministry', 'hrl_rep_statboard'] },
   { name: 'Account Management', href: '/admin/users', icon: Users, roles: ['system_admin', 'portal_admin'] },
   { name: 'Upload Circular', href: '/circulars/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
+  { name: 'Upload Resources', href: '/resources/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
 ];
 
 export function Sidebar() {
