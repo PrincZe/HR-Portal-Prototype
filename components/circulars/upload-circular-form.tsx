@@ -24,7 +24,7 @@ const uploadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   circular_number: z.string().min(1, 'Circular number is required'),
   type: z.enum(['hrl', 'hrops', 'psd'], {
-    required_error: 'Please select a circular type',
+    message: 'Please select a circular type',
   }),
   description: z.string().optional(),
   file: z
@@ -50,12 +50,11 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const form = useForm<UploadFormValues>({
+  const form = useForm({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       title: '',
       circular_number: '',
-      type: undefined,
       description: '',
       ministry_only: false,
     },

@@ -22,7 +22,7 @@ const meetingSchema = z.object({
   meeting_time: z.string().min(1, 'Time is required'),
   location: z.string().optional(),
   meeting_type: z.enum(['hrl_ministry', 'hrl_statboard', 'hrl_all'], {
-    required_error: 'Please select a meeting type',
+    message: 'Please select a meeting type',
   }),
 });
 
