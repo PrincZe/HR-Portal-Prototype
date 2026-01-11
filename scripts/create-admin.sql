@@ -17,7 +17,7 @@ INSERT INTO public.users (
   created_at,
   updated_at
 ) VALUES (
-  'YOUR_AUTH_USER_ID_HERE', -- Replace with your auth.users.id
+  '8929b9e5-df1c-4485-826c-13d63bc7e864', -- Replace with your auth.users.id
   'silent_will7@hotmail.com',
   'System Administrator',
   'PSD',

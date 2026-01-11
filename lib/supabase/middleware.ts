@@ -53,10 +53,50 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && request.nextUrl.pathname === '/login') {
-    // Redirect to dashboard if already authenticated
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
+    // Check user status before redirecting
+    const { data: userData } = await supabase
+      .from('users')
+      .select('status')
+      .eq('id', user.id)
+      .single();
+
+    if (userData) {
+      const url = request.nextUrl.clone();
+      
+      // Redirect based on user status
+      if (userData.status === 'pending') {
+        url.pathname = '/pending-approval';
+        return NextResponse.redirect(url);
+      } else if (userData.status === 'rejected' || userData.status === 'disabled') {
+        url.pathname = '/unauthorized';
+        return NextResponse.redirect(url);
+      } else if (userData.status === 'active') {
+        // Only redirect to dashboard if user is active
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // Prevent pending/rejected/disabled users from accessing dashboard routes
+  if (user && isDashboardRoute) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('status')
+      .eq('id', user.id)
+      .single();
+
+    if (userData && userData.status !== 'active') {
+      const url = request.nextUrl.clone();
+      
+      if (userData.status === 'pending') {
+        url.pathname = '/pending-approval';
+      } else {
+        url.pathname = '/unauthorized';
+      }
+      
+      return NextResponse.redirect(url);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
