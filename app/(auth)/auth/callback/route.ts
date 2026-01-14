@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -54,27 +55,17 @@ export async function GET(request: NextRequest) {
 
     console.log('Authenticated user:', { id: user.id, email: user.email });
 
-    // Check if user exists in our users table - first by ID, then by email
-    // Query without roles join first to avoid RLS recursion, then fetch roles separately
+    // Check if user exists in our users table - Use service role to bypass RLS
+    // This avoids the infinite recursion issue with RLS policies
     console.log('Looking up user in database:', { userId: user.id, userEmail: user.email });
-    let { data: userData, error: dbError } = await supabase
+    
+    const serviceClient = createServiceRoleClient();
+    
+    let { data: userData, error: dbError } = await serviceClient
       .from('users')
-      .select('*')
+      .select('*, roles(*)')
       .eq('id', user.id)
       .single();
-    
-    // If user found, fetch role separately to avoid RLS recursion
-    if (userData && !dbError) {
-      const { data: roleData } = await supabase
-        .from('roles')
-        .select('*')
-        .eq('id', userData.role_id)
-        .single();
-      
-      if (roleData) {
-        userData.roles = roleData;
-      }
-    }
 
     console.log('User lookup by ID result:', { 
       found: !!userData, 
@@ -87,24 +78,11 @@ export async function GET(request: NextRequest) {
     // If not found by ID, try finding by email (in case user was created manually in Supabase Auth)
     if (dbError || !userData) {
       console.log(`User not found by ID ${user.id}, trying to find by email ${user.email}`);
-      const { data: userByEmail, error: emailError } = await supabase
+      const { data: userByEmail, error: emailError } = await serviceClient
         .from('users')
-        .select('*')
+        .select('*, roles(*)')
         .eq('email', user.email)
         .single();
-      
-      // If user found by email, fetch role separately
-      if (userByEmail && !emailError) {
-        const { data: roleData } = await supabase
-          .from('roles')
-          .select('*')
-          .eq('id', userByEmail.role_id)
-          .single();
-        
-        if (roleData) {
-          userByEmail.roles = roleData;
-        }
-      }
       
       console.log('User lookup by email result:', {
         found: !!userByEmail,
@@ -163,13 +141,14 @@ export async function GET(request: NextRequest) {
       redirectUrl = `${origin}/unauthorized?reason=${userData.status}`;
     } else {
       // User is active - update last login timestamp
-      await supabase
+      // Use service role client for these operations to avoid RLS issues
+      await serviceClient
         .from('users')
         .update({ last_login: new Date().toISOString() })
         .eq('id', dbUserId);
 
       // Log the login action
-      await supabase
+      await serviceClient
         .from('access_logs')
         .insert({
           user_id: dbUserId,
