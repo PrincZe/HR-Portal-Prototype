@@ -5,9 +5,9 @@ import { getCircularAnnexUrls } from '@/lib/storage/access-control';
 import { CircularTypeBadge } from '@/components/ui/circular-type-badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { AnnexesSidebar } from '@/components/circulars/annexes-sidebar';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { CircularDetailClient } from '@/components/circulars/circular-detail-client';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 interface CircularDetailPageProps {
   params: Promise<{ id: string }>;
@@ -247,18 +247,8 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
           {annexes.length > 0 && <AnnexesSidebar annexes={annexes} />}
         </div>
 
-        {/* Print Button - Fixed Position */}
-        <div className="fixed top-4 right-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            className="shadow-md bg-white"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print This Page
-          </Button>
-        </div>
+        {/* Print Button - Client Component */}
+        <CircularDetailClient />
       </div>
     </div>
     );
