@@ -23,6 +23,7 @@ const ACCEPTED_FILE_TYPES = ['application/pdf'];
 const uploadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   circular_number: z.string().min(1, 'Circular number is required'),
+  year: z.string().min(4, 'Year is required').max(4, 'Year must be 4 digits'),
   type: z.enum(['hrl', 'hrops', 'psd', 'psd_minute'], {
     message: 'Please select a circular type',
   }),
@@ -49,29 +50,44 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
   const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [annexFiles, setAnnexFiles] = useState<File[]>([]);
 
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       title: '',
       circular_number: '',
+      year: new Date().getFullYear().toString(),
       description: '',
       ministry_only: false,
     },
   });
 
+  const handleAnnexFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAnnexFiles((prev) => [...prev, ...files]);
+    e.target.value = '';
+  };
+
+  const removeAnnexFile = (index: number) => {
+    setAnnexFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const onSubmit = async (values: UploadFormValues) => {
     setIsUploading(true);
+    const uploadedPaths: string[] = [];
+    
     try {
       const supabase = createClient();
       const file = values.file[0];
+      const year = values.year;
 
       // Generate unique file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${values.circular_number.replace(/\//g, '-')}.${fileExt}`;
-      const filePath = `${values.type}/${fileName}`;
+      const fileName = `${values.circular_number.replace(/\//g, '-')}.${fileExt}`;
+      const filePath = `${values.type}/${year}/${values.circular_number}/${fileName}`;
 
-      // Upload file to Supabase Storage
+      // Upload main file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('circulars')
         .upload(filePath, file, {
@@ -80,6 +96,31 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
         });
 
       if (uploadError) throw uploadError;
+      uploadedPaths.push(filePath);
+
+      // Upload annex documents
+      const annexPaths: string[] = [];
+      for (const annexFile of annexFiles) {
+        const annexExt = annexFile.name.split('.').pop();
+        const annexFileName = `${Date.now()}_${annexFile.name}`;
+        const annexPath = `${values.type}/${year}/${values.circular_number}/annexes/${annexFileName}`;
+
+        const { error: annexError } = await supabase.storage
+          .from('circulars')
+          .upload(annexPath, annexFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (annexError) {
+          // Rollback: delete uploaded files
+          await supabase.storage.from('circulars').remove(uploadedPaths);
+          throw annexError;
+        }
+
+        annexPaths.push(annexPath);
+        uploadedPaths.push(annexPath);
+      }
 
       // Insert circular record
       const { error: insertError } = await supabase.from('circulars').insert({
@@ -89,6 +130,7 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
         file_path: filePath,
         file_name: file.name,
         file_size: file.size,
+        annex_paths: annexPaths,
         description: values.description || null,
         min_role_tier: values.min_role_tier ? parseInt(values.min_role_tier) : null,
         ministry_only: values.ministry_only,
@@ -96,8 +138,8 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
       });
 
       if (insertError) {
-        // If insert fails, delete the uploaded file
-        await supabase.storage.from('circulars').remove([filePath]);
+        // If insert fails, delete the uploaded files
+        await supabase.storage.from('circulars').remove(uploadedPaths);
         throw insertError;
       }
 
@@ -175,6 +217,28 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
 
             <FormField
               control={form.control}
+              name="year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="text" 
+                      placeholder="e.g., 2024" 
+                      maxLength={4}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The year this circular was issued (4 digits)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="type"
               render={({ field }) => (
                 <FormItem>
@@ -220,7 +284,7 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
               name="file"
               render={({ field: { value, onChange, ...field } }) => (
                 <FormItem>
-                  <FormLabel>PDF File</FormLabel>
+                  <FormLabel>Main PDF Document</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-4">
                       <Input
@@ -245,6 +309,62 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
                 </FormItem>
               )}
             />
+
+            {/* Annex Documents Section */}
+            <div className="space-y-4">
+              <div>
+                <FormLabel>Attachment Files (Optional) {annexFiles.length > 0 && `- ${annexFiles.length} file(s) added`}</FormLabel>
+                <FormDescription>
+                  Click to add attachment files. You can click multiple times to add more files.
+                </FormDescription>
+              </div>
+              
+              <div className="border-2 border-dashed rounded-lg p-6 hover:border-primary/50 transition-colors">
+                <label className="cursor-pointer flex flex-col items-center gap-2">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    {annexFiles.length === 0 ? 'Click to add attachment files' : '✓ Click again to add more attachments'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    PDF, Word, Excel, or other document types
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    className="sr-only"
+                    onChange={handleAnnexFilesChange}
+                  />
+                </label>
+              </div>
+
+              {annexFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Selected Attachments:</p>
+                  {annexFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAnnexFile(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="border-t pt-6">
               <h3 className="text-sm font-medium mb-4">Access Control</h3>

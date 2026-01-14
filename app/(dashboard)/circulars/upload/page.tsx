@@ -1,24 +1,44 @@
 import { redirect } from 'next/navigation';
-import { requireRole } from '@/lib/auth';
-import { UploadCircularForm } from '@/components/circulars/upload-circular-form';
+import { createClient } from '@/lib/supabase/server';
+import { EnhancedUploadCircularForm } from '@/components/circulars/enhanced-upload-circular-form';
 
 export default async function UploadCircularPage() {
-  const user = await requireRole(['system_admin', 'portal_admin']);
-  
+  const supabase = await createClient();
+
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  if (!authUser) {
+    redirect('/login');
+  }
+
+  // Get user profile with role
+  const { data: user } = await supabase
+    .from('users')
+    .select('*, roles(*)')
+    .eq('id', authUser.id)
+    .single();
+
   if (!user) {
+    redirect('/login');
+  }
+
+  // Check if user has admin role (tier 1 or 2)
+  if (!user.roles || user.roles.tier > 2) {
     redirect('/unauthorized');
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Upload Circular</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload a new HRL, HR OPS, or PSD circular
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Upload Circular</h1>
+        <p className="mt-2 text-gray-600">
+          Upload a new circular with all required information and documents
         </p>
       </div>
 
-      <UploadCircularForm user={user} />
+      <EnhancedUploadCircularForm user={user} />
     </div>
   );
 }
