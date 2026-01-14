@@ -6,6 +6,8 @@ import { Clock, Mail } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default function PendingApprovalPage() {
   const router = useRouter();
   const supabase = createClient();
