@@ -52,23 +52,62 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=user_not_found`);
     }
 
-    // Check if user exists in our users table
-    const { data: userData, error: dbError } = await supabase
+    // Check if user exists in our users table - first by ID, then by email
+    let { data: userData, error: dbError } = await supabase
       .from('users')
       .select('*, roles(*)')
       .eq('id', user.id)
       .single();
 
+    // If not found by ID, try finding by email (in case user was created manually in Supabase Auth)
     if (dbError || !userData) {
-      // User authenticated but not in our database
+      console.log(`User not found by ID ${user.id}, trying to find by email ${user.email}`);
+      const { data: userByEmail, error: emailError } = await supabase
+        .from('users')
+        .select('*, roles(*)')
+        .eq('email', user.email)
+        .single();
+      
+      if (userByEmail && !emailError) {
+        // Found user by email but ID doesn't match - this indicates a data inconsistency
+        // The user exists in our database but with a different Supabase Auth ID
+        console.error('User found by email but ID mismatch:', {
+          authUserId: user.id,
+          dbUserId: userByEmail.id,
+          email: user.email
+        });
+        // Use the found user data but note the ID mismatch
+        userData = userByEmail;
+      } else {
+        // User not found at all in our database
+        console.error('User not found in database:', {
+          authUserId: user.id,
+          authUserEmail: user.email,
+          dbError: dbError?.message,
+          emailError: emailError?.message
+        });
+        const response = NextResponse.redirect(`${origin}/unauthorized?reason=no_access`);
+        // Set cookies on response
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+        return response;
+      }
+    }
+
+    if (!userData) {
+      // Final check - user still not found
+      console.error('User data is null after all attempts');
       const response = NextResponse.redirect(`${origin}/unauthorized?reason=no_access`);
-      // Set cookies on response
       cookiesToSet.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options);
       });
       return response;
     }
 
+    // Use the database user ID (which might differ from auth user ID if found by email)
+    const dbUserId = userData.id;
+    
     // Determine redirect URL based on user status
     let redirectUrl = `${origin}/`;
     
@@ -81,15 +120,15 @@ export async function GET(request: NextRequest) {
       await supabase
         .from('users')
         .update({ last_login: new Date().toISOString() })
-        .eq('id', user.id);
+        .eq('id', dbUserId);
 
       // Log the login action
       await supabase
         .from('access_logs')
         .insert({
-          user_id: user.id,
+          user_id: dbUserId,
           action: 'login',
-          metadata: { email: user.email }
+          metadata: { email: user.email, auth_user_id: user.id }
         });
     }
 
