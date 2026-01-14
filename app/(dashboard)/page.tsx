@@ -53,7 +53,16 @@ async function getDashboardStats(userId: string, roleName: string) {
   };
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { code?: string };
+}) {
+  // If there's a code parameter from Supabase magic link, redirect to callback
+  if (searchParams?.code) {
+    redirect(`/auth/callback?code=${searchParams.code}`);
+  }
+  
   const user = await getCurrentUser();
   
   if (!user) {
