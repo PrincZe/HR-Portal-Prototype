@@ -71,7 +71,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
   const [selectedFiles, setSelectedFiles] = useState<FileUpload[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
 
-  const form = useForm({
+  const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       category: '',

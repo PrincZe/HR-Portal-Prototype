@@ -10,12 +10,12 @@ const ACCEPTED_FILE_TYPES = [
 export const circularUploadSchema = z.object({
   // 1. Applicable For (Required)
   applicable_for: z.enum(['civil_service_and_sb', 'civil_service_only'], {
-    required_error: 'Please select who this circular applies to',
+    message: 'Please select who this circular applies to',
   }),
 
   // 2. Circular Type (Required)
   type: z.enum(['hrl', 'hrops', 'psd'], {
-    required_error: 'Please select a circular type',
+    message: 'Please select a circular type',
   }),
 
   // 3. Circular Number (Required)
@@ -27,7 +27,7 @@ export const circularUploadSchema = z.object({
 
   // 5. Primary Topic (Required)
   primary_topic: z.enum(['deployment', 'hr_analytics'], {
-    required_error: 'Please select a primary topic',
+    message: 'Please select a primary topic',
   }),
 
   // 6. Secondary Topic (Optional)
@@ -38,7 +38,7 @@ export const circularUploadSchema = z.object({
 
   // 8. Circular Status (Required)
   status: z.enum(['valid', 'obsolete'], {
-    required_error: 'Please select a status',
+    message: 'Please select a status',
   }),
 
   // 9. Turn On Notification (Optional, default: true)
@@ -46,7 +46,7 @@ export const circularUploadSchema = z.object({
 
   // 10. SB Compliance (Required)
   sb_compliance: z.enum(['for_information', 'partial_compliance', 'full_compliance'], {
-    required_error: 'Please select SB compliance level',
+    message: 'Please select SB compliance level',
   }),
 
   // 11. Upload Circular Document (Required)
