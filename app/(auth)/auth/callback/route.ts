@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth_failed`);
     }
 
-    // Get the authenticated user
+    // Get the authenticated user - verify session is established
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
@@ -52,12 +52,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=user_not_found`);
     }
 
+    console.log('Authenticated user:', { id: user.id, email: user.email });
+
     // Check if user exists in our users table - first by ID, then by email
+    console.log('Looking up user in database:', { userId: user.id, userEmail: user.email });
     let { data: userData, error: dbError } = await supabase
       .from('users')
       .select('*, roles(*)')
       .eq('id', user.id)
       .single();
+
+    console.log('User lookup by ID result:', { 
+      found: !!userData, 
+      error: dbError?.message,
+      userId: userData?.id,
+      userEmail: userData?.email,
+      userStatus: userData?.status
+    });
 
     // If not found by ID, try finding by email (in case user was created manually in Supabase Auth)
     if (dbError || !userData) {
@@ -67,6 +78,14 @@ export async function GET(request: NextRequest) {
         .select('*, roles(*)')
         .eq('email', user.email)
         .single();
+      
+      console.log('User lookup by email result:', {
+        found: !!userByEmail,
+        error: emailError?.message,
+        userId: userByEmail?.id,
+        userEmail: userByEmail?.email,
+        userStatus: userByEmail?.status
+      });
       
       if (userByEmail && !emailError) {
         // Found user by email but ID doesn't match - this indicates a data inconsistency
