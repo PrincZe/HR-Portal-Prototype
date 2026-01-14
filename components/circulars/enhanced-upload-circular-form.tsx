@@ -515,7 +515,14 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
 
             {/* 12. Upload Annex Documents */}
             <div>
-              <FormLabel>Upload Annex Documents (Optional)</FormLabel>
+              <div className="flex items-center justify-between mb-2">
+                <FormLabel>Upload Annex Documents / Attachments (Optional)</FormLabel>
+                {annexFiles.length > 0 && (
+                  <span className="text-sm text-[#17A2B8] font-medium">
+                    {annexFiles.length} file(s) added
+                  </span>
+                )}
+              </div>
               <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-[#17A2B8] transition-colors">
                 <input
                   type="file"
@@ -527,9 +534,20 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 />
                 <label htmlFor="annex-upload" className="cursor-pointer">
                   <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600 font-medium">Drag and drop files here</p>
-                  <p className="text-sm text-gray-500">or click to browse</p>
-                  <p className="text-xs text-gray-400 mt-2">Accepted: PDF, DOC, DOCX • Max: 10MB per file</p>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Click to add attachment files
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    You can click multiple times to add more files
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Accepted: PDF, DOC, DOCX • Max: 10MB per file
+                  </p>
+                  {annexFiles.length > 0 && (
+                    <p className="text-xs text-[#17A2B8] font-medium mt-2">
+                      ✓ Click again to add more attachments
+                    </p>
+                  )}
                 </label>
               </div>
 

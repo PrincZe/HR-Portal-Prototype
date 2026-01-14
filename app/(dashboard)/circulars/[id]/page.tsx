@@ -8,7 +8,7 @@ import { AnnexesSidebar } from '@/components/circulars/annexes-sidebar';
 import { CircularDetailClient } from '@/components/circulars/circular-detail-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 
 interface CircularDetailPageProps {
   params: Promise<{ id: string }>;
@@ -170,26 +170,29 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
               </div>
             )}
 
-            {/* Main Document Download */}
+            {/* Main Document */}
             <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">
-                Main Document
-              </h3>
-              <div className="bg-gray-50 p-4 rounded-lg border inline-flex items-center gap-4">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">
-                    {circular.file_name}
-                  </p>
-                  {circular.file_size && (
-                    <p className="text-sm text-gray-600">
-                      {(circular.file_size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  )}
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Main Document
+                </h3>
                 {mainDocData?.signedUrl && (
                   <div className="flex gap-2">
                     <Button
                       asChild
+                      variant="outline"
+                      size="sm"
+                    >
+                      <a
+                        href={mainDocData.signedUrl}
+                        download
+                      >
+                        Download PDF
+                      </a>
+                    </Button>
+                    <Button
+                      asChild
+                      size="sm"
                       className="bg-[#17A2B8] hover:bg-[#138496]"
                     >
                       <a
@@ -197,23 +200,40 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        View Document
-                      </a>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                    >
-                      <a
-                        href={mainDocData.signedUrl}
-                        download
-                      >
-                        Download
+                        Open in New Tab
                       </a>
                     </Button>
                   </div>
                 )}
               </div>
+
+              {/* PDF Viewer */}
+              {mainDocData?.signedUrl && circular.file_name?.toLowerCase().endsWith('.pdf') ? (
+                <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
+                  <iframe
+                    src={mainDocData.signedUrl}
+                    className="w-full h-[800px]"
+                    title={circular.title}
+                  />
+                </div>
+              ) : mainDocData?.signedUrl ? (
+                <div className="bg-gray-50 p-8 rounded-lg border text-center">
+                  <p className="text-gray-700 mb-4">
+                    This file type cannot be previewed. Please download to view.
+                  </p>
+                  <div className="flex items-center justify-center gap-4">
+                    <FileText className="h-12 w-12 text-gray-400" />
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">{circular.file_name}</p>
+                      {circular.file_size && (
+                        <p className="text-sm text-gray-600">
+                          {(circular.file_size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {/* Related Circulars */}
