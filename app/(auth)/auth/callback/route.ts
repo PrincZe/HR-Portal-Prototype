@@ -1,13 +1,40 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const origin = requestUrl.origin;
 
   if (code) {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+    
+    // Track cookies that need to be set on the response
+    const cookiesToSet: Array<{ name: string; value: string; options?: any }> = [];
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSetArray) {
+            // Store cookies to set on response
+            cookiesToSetArray.forEach(({ name, value, options }) => {
+              try {
+                cookieStore.set(name, value, options);
+              } catch {
+                // Ignore - will set on response instead
+              }
+              cookiesToSet.push({ name, value, options });
+            });
+          },
+        },
+      }
+    );
     
     // Exchange the code for a session
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
@@ -34,35 +61,45 @@ export async function GET(request: Request) {
 
     if (dbError || !userData) {
       // User authenticated but not in our database
-      return NextResponse.redirect(`${origin}/unauthorized?reason=no_access`);
-    }
-
-    // Check user status
-    if (userData.status === 'pending') {
-      return NextResponse.redirect(`${origin}/pending-approval`);
-    }
-
-    if (userData.status === 'rejected' || userData.status === 'disabled') {
-      return NextResponse.redirect(`${origin}/unauthorized?reason=${userData.status}`);
-    }
-
-    // Update last login timestamp
-    await supabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
-
-    // Log the login action
-    await supabase
-      .from('access_logs')
-      .insert({
-        user_id: user.id,
-        action: 'login',
-        metadata: { email: user.email }
+      const response = NextResponse.redirect(`${origin}/unauthorized?reason=no_access`);
+      // Set cookies on response
+      cookiesToSet.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options);
       });
+      return response;
+    }
 
-    // Successful login - redirect to dashboard
-    return NextResponse.redirect(`${origin}/`);
+    // Determine redirect URL based on user status
+    let redirectUrl = `${origin}/`;
+    
+    if (userData.status === 'pending') {
+      redirectUrl = `${origin}/pending-approval`;
+    } else if (userData.status === 'rejected' || userData.status === 'disabled') {
+      redirectUrl = `${origin}/unauthorized?reason=${userData.status}`;
+    } else {
+      // User is active - update last login timestamp
+      await supabase
+        .from('users')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', user.id);
+
+      // Log the login action
+      await supabase
+        .from('access_logs')
+        .insert({
+          user_id: user.id,
+          action: 'login',
+          metadata: { email: user.email }
+        });
+    }
+
+    // Create response with cookies
+    const response = NextResponse.redirect(redirectUrl);
+    cookiesToSet.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options);
+    });
+
+    return response;
   }
 
   // No code provided
