@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 interface CircularTypeBadgeProps {
-  type: 'hrl' | 'hrops' | 'psd';
+  type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
   className?: string;
 }
 
@@ -10,6 +10,7 @@ export function CircularTypeBadge({ type, className }: CircularTypeBadgeProps) {
     hrl: 'HRL Circular',
     hrops: 'HR Ops Circular',
     psd: 'PSD Circular',
+    psd_minute: 'PSD Circular Minute',
   };
 
   return (

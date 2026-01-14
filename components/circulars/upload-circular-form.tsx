@@ -23,7 +23,7 @@ const ACCEPTED_FILE_TYPES = ['application/pdf'];
 const uploadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   circular_number: z.string().min(1, 'Circular number is required'),
-  type: z.enum(['hrl', 'hrops', 'psd'], {
+  type: z.enum(['hrl', 'hrops', 'psd', 'psd_minute'], {
     message: 'Please select a circular type',
   }),
   description: z.string().optional(),
@@ -189,6 +189,7 @@ export function UploadCircularForm({ user }: UploadCircularFormProps) {
                       <SelectItem value="hrl">HRL Circular</SelectItem>
                       <SelectItem value="hrops">HR OPS Circular</SelectItem>
                       <SelectItem value="psd">PSD Circular</SelectItem>
+                      <SelectItem value="psd_minute">PSD Circular Minute</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

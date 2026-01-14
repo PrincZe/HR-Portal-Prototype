@@ -126,8 +126,8 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
 
             {/* Circular Number */}
             <p className="font-semibold mb-2 text-gray-900">
-              {circular.type === 'psd' && 'PMO (PSD) '}
-              CIRCULAR NO. {circular.circular_number.toUpperCase()}
+              {(circular.type === 'psd' || circular.type === 'psd_minute') && 'PMO (PSD) '}
+              {circular.type === 'psd_minute' ? 'CIRCULAR MINUTE' : 'CIRCULAR'} NO. {circular.circular_number.toUpperCase()}
             </p>
 
             {/* Issue Date */}

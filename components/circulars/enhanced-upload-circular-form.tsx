@@ -283,6 +283,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                       <SelectItem value="hrl">HRL Circular</SelectItem>
                       <SelectItem value="hrops">HR Ops Circular</SelectItem>
                       <SelectItem value="psd">PSD Circular</SelectItem>
+                      <SelectItem value="psd_minute">PSD Circular Minute</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

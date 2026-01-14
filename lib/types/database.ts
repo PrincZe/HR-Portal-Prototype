@@ -40,7 +40,7 @@ export interface Circular {
   id: string;
   title: string;
   circular_number: string;
-  type: 'hrl' | 'hrops' | 'psd';
+  type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
   file_path: string;
   file_name: string;
   file_size: number | null;
