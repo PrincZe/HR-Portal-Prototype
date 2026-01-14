@@ -55,12 +55,26 @@ export async function GET(request: NextRequest) {
     console.log('Authenticated user:', { id: user.id, email: user.email });
 
     // Check if user exists in our users table - first by ID, then by email
+    // Query without roles join first to avoid RLS recursion, then fetch roles separately
     console.log('Looking up user in database:', { userId: user.id, userEmail: user.email });
     let { data: userData, error: dbError } = await supabase
       .from('users')
-      .select('*, roles(*)')
+      .select('*')
       .eq('id', user.id)
       .single();
+    
+    // If user found, fetch role separately to avoid RLS recursion
+    if (userData && !dbError) {
+      const { data: roleData } = await supabase
+        .from('roles')
+        .select('*')
+        .eq('id', userData.role_id)
+        .single();
+      
+      if (roleData) {
+        userData.roles = roleData;
+      }
+    }
 
     console.log('User lookup by ID result:', { 
       found: !!userData, 
@@ -75,9 +89,22 @@ export async function GET(request: NextRequest) {
       console.log(`User not found by ID ${user.id}, trying to find by email ${user.email}`);
       const { data: userByEmail, error: emailError } = await supabase
         .from('users')
-        .select('*, roles(*)')
+        .select('*')
         .eq('email', user.email)
         .single();
+      
+      // If user found by email, fetch role separately
+      if (userByEmail && !emailError) {
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('*')
+          .eq('id', userByEmail.role_id)
+          .single();
+        
+        if (roleData) {
+          userByEmail.roles = roleData;
+        }
+      }
       
       console.log('User lookup by email result:', {
         found: !!userByEmail,
