@@ -25,6 +25,7 @@ interface Circular {
   min_role_tier: number | null;
   ministry_only: boolean;
   uploaded_at: string;
+  annex_paths?: string[] | null;
 }
 
 interface CircularsClientProps {
@@ -130,31 +131,8 @@ export function CircularsClient({ user }: CircularsClientProps) {
   };
 
   const handleView = async (circular: Circular) => {
-    try {
-      const supabase = createClient();
-      
-      // Get signed URL
-      const { data, error } = await supabase.storage
-        .from('circulars')
-        .createSignedUrl(circular.file_path, 60);
-
-      if (error) throw error;
-
-      // Open in new tab
-      window.open(data.signedUrl, '_blank');
-
-      // Log view action
-      await supabase.from('access_logs').insert({
-        user_id: user.id,
-        action: 'view_circular',
-        resource_type: 'circular',
-        resource_id: circular.id,
-        metadata: { circular_number: circular.circular_number },
-      });
-    } catch (error: any) {
-      console.error('Error viewing circular:', error);
-      toast.error('Failed to view circular');
-    }
+    // Navigate to detail page where user can see the circular and all attachments
+    window.location.href = `/circulars/${circular.id}`;
   };
 
   // Get available years from circulars
@@ -163,10 +141,10 @@ export function CircularsClient({ user }: CircularsClientProps) {
   ).sort((a, b) => parseInt(b) - parseInt(a));
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
+    <div className="flex flex-col lg:flex-row gap-6">
       {/* Filters Sidebar */}
-      <div className={`space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-        <Card className="p-4">
+      <aside className={`lg:w-[280px] flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+        <Card className="p-4 sticky top-4">
           <CircularFilters
             selectedTypes={selectedTypes}
             onTypesChange={setSelectedTypes}
@@ -175,10 +153,10 @@ export function CircularsClient({ user }: CircularsClientProps) {
             availableYears={availableYears}
           />
         </Card>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div className="space-y-4">
+      <div className="flex-1 space-y-4 min-w-0">
         {/* Search Bar */}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -225,7 +203,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
             <p className="text-sm text-muted-foreground">
               Showing {filteredCirculars.length} of {circulars.length} circulars
             </p>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
               {filteredCirculars.map((circular) => (
                 <CircularCard
                   key={circular.id}

@@ -18,6 +18,7 @@ interface Circular {
   min_role_tier: number | null;
   ministry_only: boolean;
   uploaded_at: string;
+  annex_paths?: string[] | null;
 }
 
 interface CircularCardProps {
@@ -90,6 +91,12 @@ export function CircularCard({ circular, onView, onDownload }: CircularCardProps
             <FileText className="h-4 w-4" />
             <span>{formatFileSize(circular.file_size)}</span>
           </div>
+          {circular.annex_paths && circular.annex_paths.length > 0 && (
+            <div className="flex items-center gap-2 text-amber-600">
+              <FileText className="h-4 w-4" />
+              <span className="font-medium">{circular.annex_paths.length} attachment(s)</span>
+            </div>
+          )}
         </div>
       </CardContent>
 
