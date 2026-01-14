@@ -14,28 +14,30 @@ interface CircularDetailPageProps {
 }
 
 export default async function CircularDetailPage({ params }: CircularDetailPageProps) {
-  const user = await getCurrentUser();
+  try {
+    const user = await getCurrentUser();
 
-  if (!user) {
-    redirect('/login');
-  }
+    if (!user) {
+      redirect('/login');
+    }
 
-  const { id } = await params;
-  const supabase = await createClient();
+    const { id } = await params;
+    const supabase = await createClient();
 
-  // Fetch circular (RLS will filter based on user access)
-  const { data: circular, error } = await supabase
-    .from('circulars')
-    .select('*')
-    .eq('id', id)
-    .single();
+    // Fetch circular (RLS will filter based on user access)
+    const { data: circular, error } = await supabase
+      .from('circulars')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  if (error || !circular) {
-    notFound();
-  }
+    if (error || !circular) {
+      console.error('Error fetching circular:', error);
+      notFound();
+    }
 
-  // Get signed URLs for annexes
-  const annexes = await getCircularAnnexUrls(id);
+    // Get signed URLs for annexes (with error handling)
+    const annexes = await getCircularAnnexUrls(id);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -47,12 +49,12 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
     });
   };
 
-  // Get main document signed URL
-  const { data: mainDocData } = await supabase.storage
-    .from('circulars')
-    .createSignedUrl(circular.file_path, 3600);
+    // Get main document signed URL
+    const { data: mainDocData } = await supabase.storage
+      .from('circulars')
+      .createSignedUrl(circular.file_path, 3600);
 
-  return (
+    return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-6">
         {/* Breadcrumb */}
@@ -259,5 +261,9 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('Error rendering circular detail page:', error);
+    notFound();
+  }
 }

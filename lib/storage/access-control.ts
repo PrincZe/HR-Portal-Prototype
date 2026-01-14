@@ -50,29 +50,44 @@ export async function getCircularDocumentUrl(circularId: string) {
  * Get signed URLs for all circular annexes
  */
 export async function getCircularAnnexUrls(circularId: string) {
-  const circular = await canAccessCircular(circularId);
-  
-  if (!circular || !circular.annex_paths || circular.annex_paths.length === 0) {
+  try {
+    const circular = await canAccessCircular(circularId);
+    
+    if (!circular || !circular.annex_paths || circular.annex_paths.length === 0) {
+      return [];
+    }
+    
+    const urls = await Promise.all(
+      circular.annex_paths.map(async (path: string) => {
+        try {
+          const url = await getSignedUrl({
+            bucket: 'circulars',
+            path,
+            expiresIn: 3600,
+          });
+          
+          return {
+            path,
+            url,
+            filename: path.split('/').pop() || path,
+          };
+        } catch (error) {
+          console.error(`Error getting signed URL for annex: ${path}`, error);
+          // Return a placeholder if individual file fails
+          return {
+            path,
+            url: '#',
+            filename: path.split('/').pop() || path,
+          };
+        }
+      })
+    );
+    
+    return urls;
+  } catch (error) {
+    console.error('Error getting annex URLs:', error);
     return [];
   }
-  
-  const urls = await Promise.all(
-    circular.annex_paths.map(async (path: string) => {
-      const url = await getSignedUrl({
-        bucket: 'circulars',
-        path,
-        expiresIn: 3600,
-      });
-      
-      return {
-        path,
-        url,
-        filename: path.split('/').pop() || path,
-      };
-    })
-  );
-  
-  return urls;
 }
 
 /**

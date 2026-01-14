@@ -109,6 +109,8 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
   const handleAnnexFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setAnnexFiles((prev) => [...prev, ...files]);
+    // Reset the input so user can select more files
+    e.target.value = '';
   };
 
   const removeAnnexFile = (index: number) => {
