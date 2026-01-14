@@ -38,10 +38,12 @@ function LoginForm() {
 
     try {
       const supabase = createClient();
+      // Use current domain dynamically - works with custom domain or Vercel domain
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl,
         },
       });
 
