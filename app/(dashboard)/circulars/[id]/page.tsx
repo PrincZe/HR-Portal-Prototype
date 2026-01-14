@@ -6,6 +6,7 @@ import { CircularTypeBadge } from '@/components/ui/circular-type-badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { AnnexesSidebar } from '@/components/circulars/annexes-sidebar';
 import { CircularDetailClient } from '@/components/circulars/circular-detail-client';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
