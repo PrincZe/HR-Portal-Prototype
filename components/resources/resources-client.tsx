@@ -16,10 +16,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface Resource {
   id: string;
   title: string;
-  category: string;
+  topic: string;
+  category_type: string | null;
   file_path: string;
   file_name: string;
-  file_type: string;
   file_size: number | null;
   description: string | null;
   min_role_tier: number | null;
@@ -37,8 +37,8 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
   const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedCategoryTypes, setSelectedCategoryTypes] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -48,7 +48,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
 
   useEffect(() => {
     filterResources();
-  }, [resources, searchQuery, selectedCategories, selectedFileTypes]);
+  }, [resources, searchQuery, selectedTopics, selectedCategoryTypes]);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -80,20 +80,20 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
       filtered = filtered.filter(
         r =>
           r.title.toLowerCase().includes(query) ||
-          r.category.toLowerCase().includes(query) ||
+          r.topic.toLowerCase().includes(query) ||
           r.description?.toLowerCase().includes(query) ||
           r.file_name.toLowerCase().includes(query)
       );
     }
 
-    // Filter by category
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter(r => selectedCategories.includes(r.category));
+    // Filter by topic
+    if (selectedTopics.length > 0) {
+      filtered = filtered.filter(r => selectedTopics.includes(r.topic));
     }
 
-    // Filter by file type
-    if (selectedFileTypes.length > 0) {
-      filtered = filtered.filter(r => selectedFileTypes.includes(r.file_type));
+    // Filter by category type
+    if (selectedCategoryTypes.length > 0) {
+      filtered = filtered.filter(r => r.category_type && selectedCategoryTypes.includes(r.category_type));
     }
 
     setFilteredResources(filtered);
@@ -154,7 +154,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
         action: 'view_resource',
         resource_type: 'resource',
         resource_id: resource.id,
-        metadata: { file_name: resource.file_name, category: resource.category },
+        metadata: { file_name: resource.file_name, topic: resource.topic },
       });
     } catch (error: any) {
       console.error('Error viewing resource:', error);
@@ -189,7 +189,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
         action: 'delete_resource',
         resource_type: 'resource',
         resource_id: resource.id,
-        metadata: { file_name: resource.file_name, category: resource.category },
+        metadata: { file_name: resource.file_name, topic: resource.topic },
       });
 
       toast.success('Resource deleted successfully');
@@ -200,9 +200,9 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
     }
   };
 
-  // Get available categories and file types
-  const availableCategories = Array.from(new Set(resources.map(r => r.category))).sort();
-  const availableFileTypes = Array.from(new Set(resources.map(r => r.file_type))).sort();
+  // Get available topics and category types
+  const availableTopics = Array.from(new Set(resources.map(r => r.topic))).sort();
+  const availableCategoryTypes = Array.from(new Set(resources.map(r => r.category_type).filter(Boolean))).sort();
 
   const isAdmin = user.roles.name === 'system_admin' || user.roles.name === 'portal_admin';
 
@@ -212,12 +212,12 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
       <div className={`space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
         <Card className="p-4">
           <ResourceFilters
-            selectedCategories={selectedCategories}
-            onCategoriesChange={setSelectedCategories}
-            selectedFileTypes={selectedFileTypes}
-            onFileTypesChange={setSelectedFileTypes}
-            availableCategories={availableCategories}
-            availableFileTypes={availableFileTypes}
+            selectedTopics={selectedTopics}
+            onTopicsChange={setSelectedTopics}
+            selectedCategoryTypes={selectedCategoryTypes}
+            onCategoryTypesChange={setSelectedCategoryTypes}
+            availableTopics={availableTopics}
+            availableCategoryTypes={availableCategoryTypes}
           />
         </Card>
       </div>

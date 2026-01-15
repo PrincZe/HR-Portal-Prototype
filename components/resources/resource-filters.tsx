@@ -7,44 +7,44 @@ import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ResourceFiltersProps {
-  selectedCategories: string[];
-  onCategoriesChange: (categories: string[]) => void;
-  selectedFileTypes: string[];
-  onFileTypesChange: (types: string[]) => void;
-  availableCategories: string[];
-  availableFileTypes: string[];
+  selectedTopics: string[];
+  onTopicsChange: (topics: string[]) => void;
+  selectedCategoryTypes: string[];
+  onCategoryTypesChange: (types: string[]) => void;
+  availableTopics: string[];
+  availableCategoryTypes: string[];
 }
 
 export function ResourceFilters({
-  selectedCategories,
-  onCategoriesChange,
-  selectedFileTypes,
-  onFileTypesChange,
-  availableCategories,
-  availableFileTypes,
+  selectedTopics,
+  onTopicsChange,
+  selectedCategoryTypes,
+  onCategoryTypesChange,
+  availableTopics,
+  availableCategoryTypes,
 }: ResourceFiltersProps) {
-  const handleCategoryToggle = (category: string) => {
-    if (selectedCategories.includes(category)) {
-      onCategoriesChange(selectedCategories.filter(c => c !== category));
+  const handleTopicToggle = (topic: string) => {
+    if (selectedTopics.includes(topic)) {
+      onTopicsChange(selectedTopics.filter(t => t !== topic));
     } else {
-      onCategoriesChange([...selectedCategories, category]);
+      onTopicsChange([...selectedTopics, topic]);
     }
   };
 
-  const handleFileTypeToggle = (type: string) => {
-    if (selectedFileTypes.includes(type)) {
-      onFileTypesChange(selectedFileTypes.filter(t => t !== type));
+  const handleCategoryTypeToggle = (type: string) => {
+    if (selectedCategoryTypes.includes(type)) {
+      onCategoryTypesChange(selectedCategoryTypes.filter(t => t !== type));
     } else {
-      onFileTypesChange([...selectedFileTypes, type]);
+      onCategoryTypesChange([...selectedCategoryTypes, type]);
     }
   };
 
   const handleClearAll = () => {
-    onCategoriesChange([]);
-    onFileTypesChange([]);
+    onTopicsChange([]);
+    onCategoryTypesChange([]);
   };
 
-  const hasActiveFilters = selectedCategories.length > 0 || selectedFileTypes.length > 0;
+  const hasActiveFilters = selectedTopics.length > 0 || selectedCategoryTypes.length > 0;
 
   return (
     <div className="space-y-4">
@@ -63,24 +63,24 @@ export function ResourceFilters({
         )}
       </div>
 
-      {/* Category Filters */}
-      {availableCategories.length > 0 && (
+      {/* Topic Filters */}
+      {availableTopics.length > 0 && (
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Category</Label>
+          <Label className="text-sm font-medium">Topic</Label>
           <ScrollArea className="h-[200px]">
             <div className="space-y-2 pr-4">
-              {availableCategories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
+              {availableTopics.map((topic) => (
+                <div key={topic} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`cat-${category}`}
-                    checked={selectedCategories.includes(category)}
-                    onCheckedChange={() => handleCategoryToggle(category)}
+                    id={`topic-${topic}`}
+                    checked={selectedTopics.includes(topic)}
+                    onCheckedChange={() => handleTopicToggle(topic)}
                   />
                   <label
-                    htmlFor={`cat-${category}`}
-                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    htmlFor={`topic-${topic}`}
+                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer capitalize"
                   >
-                    {category}
+                    {topic.replace(/_/g, ' ')}
                   </label>
                 </div>
               ))}
@@ -89,22 +89,22 @@ export function ResourceFilters({
         </div>
       )}
 
-      {/* File Type Filters */}
-      {availableFileTypes.length > 0 && (
+      {/* Category Type Filters */}
+      {availableCategoryTypes.length > 0 && (
         <div className="space-y-3">
-          <Label className="text-sm font-medium">File Type</Label>
+          <Label className="text-sm font-medium">Category Type</Label>
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 pr-4">
-              {availableFileTypes.map((type) => (
+              {availableCategoryTypes.map((type) => (
                 <div key={type} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`type-${type}`}
-                    checked={selectedFileTypes.includes(type)}
-                    onCheckedChange={() => handleFileTypeToggle(type)}
+                    id={`cat-type-${type}`}
+                    checked={selectedCategoryTypes.includes(type)}
+                    onCheckedChange={() => handleCategoryTypeToggle(type)}
                   />
                   <label
-                    htmlFor={`type-${type}`}
-                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer uppercase"
+                    htmlFor={`cat-type-${type}`}
+                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer capitalize"
                   >
                     {type}
                   </label>

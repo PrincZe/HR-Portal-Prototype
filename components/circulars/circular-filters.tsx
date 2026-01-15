@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 
 interface CircularFiltersProps {
   selectedTypes: string[];
@@ -13,6 +14,8 @@ interface CircularFiltersProps {
   onYearChange: (year: string) => void;
   selectedStatus: string;
   onStatusChange: (status: string) => void;
+  selectedTopic: string;
+  onTopicChange: (topic: string) => void;
   availableYears: string[];
 }
 
@@ -23,6 +26,8 @@ export function CircularFilters({
   onYearChange,
   selectedStatus,
   onStatusChange,
+  selectedTopic,
+  onTopicChange,
   availableYears,
 }: CircularFiltersProps) {
   const types = [
@@ -44,9 +49,10 @@ export function CircularFilters({
     onTypesChange([]);
     onYearChange('all');
     onStatusChange('all');
+    onTopicChange('all');
   };
 
-  const hasActiveFilters = selectedTypes.length > 0 || selectedYear !== 'all' || selectedStatus !== 'all';
+  const hasActiveFilters = selectedTypes.length > 0 || selectedYear !== 'all' || selectedStatus !== 'all' || selectedTopic !== 'all';
 
   return (
     <div className="space-y-4">
@@ -85,6 +91,24 @@ export function CircularFilters({
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Topic Filter */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Topic</Label>
+        <Select value={selectedTopic} onValueChange={onTopicChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Topics</SelectItem>
+            {SECONDARY_TOPICS.map((topic) => (
+              <SelectItem key={topic.value} value={topic.value}>
+                {topic.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Status Filter */}

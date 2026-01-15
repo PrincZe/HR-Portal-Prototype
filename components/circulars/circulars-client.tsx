@@ -41,6 +41,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
 
   useEffect(() => {
     filterCirculars();
-  }, [circulars, searchQuery, selectedTypes, selectedYear, selectedStatus]);
+  }, [circulars, searchQuery, selectedTypes, selectedYear, selectedStatus, selectedTopic]);
 
   const fetchCirculars = async () => {
     setLoading(true);
@@ -89,6 +90,11 @@ export function CircularsClient({ user }: CircularsClientProps) {
     // Filter by type
     if (selectedTypes.length > 0) {
       filtered = filtered.filter(c => selectedTypes.includes(c.type));
+    }
+
+    // Filter by topic
+    if (selectedTopic !== 'all') {
+      filtered = filtered.filter(c => c.primary_topic === selectedTopic);
     }
 
     // Filter by status
@@ -163,6 +169,8 @@ export function CircularsClient({ user }: CircularsClientProps) {
             onYearChange={setSelectedYear}
             selectedStatus={selectedStatus}
             onStatusChange={setSelectedStatus}
+            selectedTopic={selectedTopic}
+            onTopicChange={setSelectedTopic}
             availableYears={availableYears}
           />
         </Card>
