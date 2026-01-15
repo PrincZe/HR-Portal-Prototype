@@ -25,6 +25,7 @@ export function CircularFilters({
     { value: 'hrl', label: 'HRL Circular' },
     { value: 'hrops', label: 'HR OPS Circular' },
     { value: 'psd', label: 'PSD Circular' },
+    { value: 'psd_minute', label: 'PSD Circular Minute' },
   ];
 
   const handleTypeToggle = (type: string) => {

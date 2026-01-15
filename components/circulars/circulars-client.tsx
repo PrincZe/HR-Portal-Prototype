@@ -89,10 +89,11 @@ export function CircularsClient({ user }: CircularsClientProps) {
       filtered = filtered.filter(c => selectedTypes.includes(c.type));
     }
 
-    // Filter by year
+    // Filter by year (extract from circular number e.g., "15/2026")
     if (selectedYear !== 'all') {
       filtered = filtered.filter(c => {
-        const year = new Date(c.uploaded_at).getFullYear().toString();
+        const match = c.circular_number.match(/\/(\d{4})/);
+        const year = match ? match[1] : new Date(c.uploaded_at).getFullYear().toString();
         return year === selectedYear;
       });
     }
@@ -135,9 +136,12 @@ export function CircularsClient({ user }: CircularsClientProps) {
     window.location.href = `/circulars/${circular.id}`;
   };
 
-  // Get available years from circulars
+  // Get available years from circulars (extract from circular number e.g., "15/2026")
   const availableYears = Array.from(
-    new Set(circulars.map(c => new Date(c.uploaded_at).getFullYear().toString()))
+    new Set(circulars.map(c => {
+      const match = c.circular_number.match(/\/(\d{4})/);
+      return match ? match[1] : new Date(c.uploaded_at).getFullYear().toString();
+    }))
   ).sort((a, b) => parseInt(b) - parseInt(a));
 
   return (

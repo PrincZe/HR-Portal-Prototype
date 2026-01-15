@@ -268,116 +268,152 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
-            {/* 2. Circular Type */}
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Circular Type *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {/* 2 & 3. Circular Type + Number (Side by Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Circular Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select circular type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="hrl">HRL Circular</SelectItem>
+                        <SelectItem value="hrops">HR Ops Circular</SelectItem>
+                        <SelectItem value="psd">PSD Circular</SelectItem>
+                        <SelectItem value="psd_minute">PSD Circular Minute</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="circular_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Circular Number *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select circular type" />
-                      </SelectTrigger>
+                      <Input placeholder="e.g., 15/2026" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="hrl">HRL Circular</SelectItem>
-                      <SelectItem value="hrops">HR Ops Circular</SelectItem>
-                      <SelectItem value="psd">PSD Circular</SelectItem>
-                      <SelectItem value="psd_minute">PSD Circular Minute</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormDescription className="text-xs">
+                      Format: NUMBER/YEAR (e.g., 15/2026)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* 3. Circular Number */}
-            <FormField
-              control={form.control}
-              name="circular_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Circular Number *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 15/2026" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Format: NUMBER/YEAR (e.g., 15/2026). Auto-suggested based on type.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* 4. Issue Date */}
-            <FormField
-              control={form.control}
-              name="issue_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Issue Date *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormDescription>The date this circular was issued</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* 5. Primary Topic */}
-            <FormField
-              control={form.control}
-              name="primary_topic"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Primary Topic *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {/* 4. Issue Date + 5. Primary Topic (Side by Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="issue_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Issue Date *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select primary topic" />
-                      </SelectTrigger>
+                      <Input type="date" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {PRIMARY_TOPICS.map((topic) => (
-                        <SelectItem key={topic.value} value={topic.value}>
-                          {topic.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormDescription className="text-xs">When circular was issued</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* 6. Secondary Topic */}
-            <FormField
-              control={form.control}
-              name="secondary_topic"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Secondary Topic</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              <FormField
+                control={form.control}
+                name="primary_topic"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary Topic *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select primary topic" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PRIMARY_TOPICS.map((topic) => (
+                          <SelectItem key={topic.value} value={topic.value}>
+                            {topic.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-xs">Main category</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* 6. Secondary Topic + 8. Status (Side by Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="secondary_topic"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Secondary Topic</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Optional" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SECONDARY_TOPICS.map((topic) => (
+                          <SelectItem key={topic.value} value={topic.value}>
+                            {topic.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Circular Status *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select secondary topic (optional)" />
-                      </SelectTrigger>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="valid" id="status_valid" />
+                          <label htmlFor="status_valid" className="text-sm font-normal cursor-pointer">
+                            Valid
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="obsolete" id="status_obsolete" />
+                          <label htmlFor="status_obsolete" className="text-sm font-normal cursor-pointer">
+                            Obsolete
+                          </label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <SelectContent>
-                      {SECONDARY_TOPICS.map((topic) => (
-                        <SelectItem key={topic.value} value={topic.value}>
-                          {topic.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* 7. Circular Title */}
             <FormField
@@ -389,35 +425,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   <FormControl>
                     <Input placeholder="Enter circular title" {...field} maxLength={255} />
                   </FormControl>
-                  <FormDescription>Maximum 255 characters</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* 8. Circular Status */}
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Circular Status *</FormLabel>
-                  <FormControl>
-                    <RadioGroup onValueChange={field.onChange} value={field.value}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="valid" id="status_valid" />
-                        <label htmlFor="status_valid" className="text-sm font-normal cursor-pointer">
-                          Valid
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="obsolete" id="status_obsolete" />
-                        <label htmlFor="status_obsolete" className="text-sm font-normal cursor-pointer">
-                          Obsolete
-                        </label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
+                  <FormDescription className="text-xs">Maximum 255 characters</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -429,7 +437,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               name="notify_update"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Turn On Notification</FormLabel>
+                  <FormLabel>Turn On Notification <span className="text-xs text-muted-foreground font-normal">(Feature doesn't work yet)</span></FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={(value) => field.onChange(value === 'true')}
@@ -450,7 +458,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                     </RadioGroup>
                   </FormControl>
                   <FormDescription>
-                    Notify users when this circular is uploaded
+                    Notify users when this circular is uploaded (placeholder feature)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
