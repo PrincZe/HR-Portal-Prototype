@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@/lib/types/database';
-import { PRIMARY_TOPICS, SECONDARY_TOPICS } from '@/lib/constants/topics';
+import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -24,10 +24,7 @@ const editCircularSchema = z.object({
   circular_number: z.string().min(1, 'Circular number is required')
     .regex(/^\d+[a-z]?\/\d{4}$/, 'Format must be: NUMBER/YEAR (e.g., 15/2026)'),
   issue_date: z.string().min(1, 'Issue date is required'),
-  primary_topic: z.enum(['deployment', 'hr_analytics'], {
-    message: 'Please select a primary topic',
-  }),
-  secondary_topic: z.string().optional(),
+  primary_topic: z.string().min(1, 'Primary topic is required'),
   status: z.enum(['valid', 'obsolete'], {
     message: 'Please select a status',
   }),
@@ -57,8 +54,7 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
       title: circular.title || '',
       circular_number: circular.circular_number || '',
       issue_date: circular.issue_date || '',
-      primary_topic: circular.primary_topic || undefined,
-      secondary_topic: circular.secondary_topic || '',
+      primary_topic: circular.primary_topic || '',
       status: circular.status || 'valid',
       description: circular.description || '',
       applicable_for: circular.applicable_for || undefined,
@@ -79,7 +75,7 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
           circular_number: values.circular_number,
           issue_date: values.issue_date,
           primary_topic: values.primary_topic,
-          secondary_topic: values.secondary_topic || null,
+          secondary_topic: null,
           status: values.status,
           description: values.description || null,
           applicable_for: values.applicable_for,
@@ -172,58 +168,31 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
               )}
             />
 
-            {/* Primary Topic + Secondary Topic */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="primary_topic"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Topic *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select primary topic" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PRIMARY_TOPICS.map((topic) => (
-                          <SelectItem key={topic.value} value={topic.value}>
-                            {topic.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="secondary_topic"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secondary Topic</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Optional" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {SECONDARY_TOPICS.map((topic) => (
-                          <SelectItem key={topic.value} value={topic.value}>
-                            {topic.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Primary Topic */}
+            <FormField
+              control={form.control}
+              name="primary_topic"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Primary Topic *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select primary topic" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {SECONDARY_TOPICS.map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Status (KEY FEATURE!) */}
             <FormField

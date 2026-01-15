@@ -141,19 +141,12 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
               </p>
             )}
 
-            {/* Topics */}
-            {(circular.primary_topic || circular.secondary_topic) && (
-              <div className="mb-6 flex flex-wrap gap-2">
-                {circular.primary_topic && (
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
-                    Primary: {circular.primary_topic.replace(/_/g, ' ')}
-                  </span>
-                )}
-                {circular.secondary_topic && (
-                  <span className="inline-block px-3 py-1 bg-gray-50 text-gray-600 text-sm rounded-md border">
-                    Secondary: {circular.secondary_topic.replace(/_/g, ' ')}
-                  </span>
-                )}
+            {/* Topic */}
+            {circular.primary_topic && (
+              <div className="mb-6">
+                <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
+                  Topic: {circular.primary_topic.replace(/_/g, ' ')}
+                </span>
               </div>
             )}
 

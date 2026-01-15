@@ -25,13 +25,8 @@ export const circularUploadSchema = z.object({
   // 4. Issue Date (Required)
   issue_date: z.string().min(1, 'Issue date is required'),
 
-  // 5. Primary Topic (Required)
-  primary_topic: z.enum(['deployment', 'hr_analytics'], {
-    message: 'Please select a primary topic',
-  }),
-
-  // 6. Secondary Topic (Optional)
-  secondary_topic: z.string().optional(),
+  // 5. Primary Topic (Required) - Using the 41 topics from Secondary Topics
+  primary_topic: z.string().min(1, 'Primary topic is required'),
 
   // 7. Circular Title (Required)
   title: z.string().min(1, 'Title is required').max(255, 'Title must not exceed 255 characters'),

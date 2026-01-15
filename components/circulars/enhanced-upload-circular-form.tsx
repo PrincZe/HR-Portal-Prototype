@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@/lib/types/database';
 import { circularUploadSchema, CircularUploadFormValues } from '@/lib/schemas/circular-upload';
-import { PRIMARY_TOPICS, SECONDARY_TOPICS } from '@/lib/constants/topics';
+import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 import { deleteFiles } from '@/lib/storage/file-utils';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -189,7 +189,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         applicable_for: values.applicable_for,
         issue_date: values.issue_date,
         primary_topic: values.primary_topic,
-        secondary_topic: values.secondary_topic || null,
+        secondary_topic: null,
         status: values.status,
         notify_update: values.notify_update,
         sb_compliance: values.sb_compliance,
@@ -309,76 +309,49 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               />
             </div>
 
-            {/* 4. Issue Date + 5. Primary Topic (Side by Side) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="issue_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Issue Date *</FormLabel>
+            {/* 4. Issue Date */}
+            <FormField
+              control={form.control}
+              name="issue_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Issue Date *</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* 5. Primary Topic */}
+            <FormField
+              control={form.control}
+              name="primary_topic"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Primary Topic *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select primary topic" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <SelectContent>
+                      {SECONDARY_TOPICS.map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="primary_topic"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Topic *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select primary topic" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PRIMARY_TOPICS.map((topic) => (
-                          <SelectItem key={topic.value} value={topic.value}>
-                            {topic.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* 6. Secondary Topic + 8. Status (Side by Side) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="secondary_topic"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secondary Topic</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Optional" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {SECONDARY_TOPICS.map((topic) => (
-                          <SelectItem key={topic.value} value={topic.value}>
-                            {topic.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
+            {/* 6. Status */}
+            <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
@@ -408,7 +381,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   </FormItem>
                 )}
               />
-            </div>
 
             {/* 7. Circular Title */}
             <FormField
