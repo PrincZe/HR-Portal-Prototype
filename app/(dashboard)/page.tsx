@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Users, FileText, Clock, TrendingUp, Upload, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { isAdmin } from '@/lib/roles';
+import { AnnouncementBanner } from '@/components/announcements/announcement-banner';
 
 async function getDashboardStats(userId: string, roleName: string) {
   const supabase = await createClient();
@@ -53,6 +54,20 @@ async function getDashboardStats(userId: string, roleName: string) {
   };
 }
 
+async function getActiveAnnouncements() {
+  const supabase = await createClient();
+  
+  const { data: announcements } = await supabase
+    .from('announcements')
+    .select('*')
+    .eq('is_active', true)
+    .lte('start_date', new Date().toISOString())
+    .or('end_date.is.null,end_date.gte.' + new Date().toISOString())
+    .order('created_at', { ascending: false });
+  
+  return announcements || [];
+}
+
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -70,17 +85,21 @@ export default async function DashboardPage({
   }
   
   const stats = await getDashboardStats(user.id, user.roles.name);
+  const announcements = await getActiveAnnouncements();
   const isUserAdmin = isAdmin(user.roles.name);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user.full_name || 'User'}</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome to the HR Portal. Here's an overview of your workspace.
+          {user.roles.display_name} • {user.agency || 'HR Portal'}
         </p>
       </div>
+
+      {/* Announcement Banner */}
+      <AnnouncementBanner announcements={announcements} />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

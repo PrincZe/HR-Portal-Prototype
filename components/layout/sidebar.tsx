@@ -10,7 +10,8 @@ import {
   Calendar,
   Upload,
   User,
-  LogOut
+  LogOut,
+  Megaphone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -20,11 +21,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const allNavigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: 'all' },
+  { name: 'Home', href: '/', icon: LayoutDashboard, roles: 'all' },
   { name: 'Circulars', href: '/circulars', icon: FileText, roles: 'all' },
   { name: 'Resources', href: '/resources', icon: FolderOpen, roles: 'all' },
   { name: 'HRL Meetings', href: '/hrl-meetings', icon: Calendar, roles: ['system_admin', 'hrl_ministry', 'hrl_statboard', 'hrl_rep_ministry', 'hrl_rep_statboard'] },
   { name: 'Account Management', href: '/admin/users', icon: Users, roles: ['system_admin', 'portal_admin'] },
+  { name: 'Manage Announcements', href: '/admin/announcements', icon: Megaphone, roles: ['system_admin', 'portal_admin'] },
   { name: 'Upload Circular', href: '/circulars/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
   { name: 'Upload Resources', href: '/resources/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
 ];
