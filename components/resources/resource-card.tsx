@@ -23,10 +23,10 @@ import { MoreVertical } from 'lucide-react';
 interface Resource {
   id: string;
   title: string;
-  category: string;
+  topic: string;
+  category_type: string | null;
   file_path: string;
   file_name: string;
-  file_type: string;
   file_size: number | null;
   description: string | null;
   min_role_tier: number | null;
@@ -43,9 +43,15 @@ interface ResourceCardProps {
 }
 
 export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete }: ResourceCardProps) {
-  const getFileIcon = (fileType: string) => {
+  const getFileType = (fileName: string): string => {
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    return extension;
+  };
+
+  const getFileIcon = (fileName: string) => {
     const iconClass = "h-5 w-5";
-    switch (fileType.toLowerCase()) {
+    const fileType = getFileType(fileName);
+    switch (fileType) {
       case 'pdf':
         return <FileText className={iconClass} />;
       case 'xlsx':
@@ -72,7 +78,17 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
     }
   };
 
-  const getCategoryBadge = (category: string) => {
+  const getTopicBadge = (topic: string) => {
+    return (
+      <Badge className="bg-[#17A2B8] text-white">
+        {topic}
+      </Badge>
+    );
+  };
+
+  const getCategoryTypeBadge = (categoryType: string | null) => {
+    if (!categoryType) return null;
+    
     const colors: Record<string, string> = {
       'Templates': 'bg-blue-100 text-blue-800',
       'Guides': 'bg-green-100 text-green-800',
@@ -82,8 +98,8 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
       'Other': 'bg-gray-100 text-gray-800',
     };
     return (
-      <Badge className={colors[category] || colors['Other']}>
-        {category}
+      <Badge className={colors[categoryType] || colors['Other']}>
+        {categoryType}
       </Badge>
     );
   };
@@ -120,13 +136,14 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
       <Card className="hover:shadow-md transition-shadow">
         <div className="flex items-center gap-4 p-4">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-muted">
-            {getFileIcon(resource.file_type)}
+            {getFileIcon(resource.file_name)}
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              {getCategoryBadge(resource.category)}
-              <span className="text-xs text-muted-foreground uppercase">{resource.file_type}</span>
+              {getTopicBadge(resource.topic)}
+              {getCategoryTypeBadge(resource.category_type)}
+              <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
             </div>
             <h3 className="font-semibold truncate">{resource.title}</h3>
             {resource.description && (
@@ -173,11 +190,12 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
     <Card className="flex flex-col hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2">
-            {getFileIcon(resource.file_type)}
-            {getCategoryBadge(resource.category)}
+          <div className="flex items-center gap-2 flex-wrap">
+            {getFileIcon(resource.file_name)}
+            {getTopicBadge(resource.topic)}
+            {getCategoryTypeBadge(resource.category_type)}
           </div>
-          <span className="text-xs text-muted-foreground uppercase">{resource.file_type}</span>
+          <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
         </div>
         <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
         {resource.description && (
