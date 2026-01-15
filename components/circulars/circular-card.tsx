@@ -11,6 +11,7 @@ interface Circular {
   title: string;
   circular_number: string;
   type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
+  status?: 'valid' | 'obsolete' | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
@@ -68,7 +69,20 @@ export function CircularCard({ circular, onView, onDownload }: CircularCardProps
     <Card className="flex flex-col hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          {getTypeBadge(circular.type)}
+          <div className="flex items-center gap-2 flex-wrap">
+            {getTypeBadge(circular.type)}
+            {circular.status && (
+              <Badge 
+                className={
+                  circular.status === 'valid' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }
+              >
+                {circular.status.toUpperCase()}
+              </Badge>
+            )}
+          </div>
           <span className="text-xs text-muted-foreground">{circular.circular_number}</span>
         </div>
         <CardTitle className="text-lg line-clamp-2">{circular.title}</CardTitle>

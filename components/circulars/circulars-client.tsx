@@ -18,6 +18,7 @@ interface Circular {
   title: string;
   circular_number: string;
   type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
+  status?: 'valid' | 'obsolete' | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
@@ -39,6 +40,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
 
   useEffect(() => {
     filterCirculars();
-  }, [circulars, searchQuery, selectedTypes, selectedYear]);
+  }, [circulars, searchQuery, selectedTypes, selectedYear, selectedStatus]);
 
   const fetchCirculars = async () => {
     setLoading(true);
@@ -87,6 +89,11 @@ export function CircularsClient({ user }: CircularsClientProps) {
     // Filter by type
     if (selectedTypes.length > 0) {
       filtered = filtered.filter(c => selectedTypes.includes(c.type));
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(c => c.status === selectedStatus);
     }
 
     // Filter by year (extract from circular number e.g., "15/2026")
@@ -154,6 +161,8 @@ export function CircularsClient({ user }: CircularsClientProps) {
             onTypesChange={setSelectedTypes}
             selectedYear={selectedYear}
             onYearChange={setSelectedYear}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
             availableYears={availableYears}
           />
         </Card>

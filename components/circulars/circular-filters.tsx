@@ -11,6 +11,8 @@ interface CircularFiltersProps {
   onTypesChange: (types: string[]) => void;
   selectedYear: string;
   onYearChange: (year: string) => void;
+  selectedStatus: string;
+  onStatusChange: (status: string) => void;
   availableYears: string[];
 }
 
@@ -19,6 +21,8 @@ export function CircularFilters({
   onTypesChange,
   selectedYear,
   onYearChange,
+  selectedStatus,
+  onStatusChange,
   availableYears,
 }: CircularFiltersProps) {
   const types = [
@@ -39,9 +43,10 @@ export function CircularFilters({
   const handleClearAll = () => {
     onTypesChange([]);
     onYearChange('all');
+    onStatusChange('all');
   };
 
-  const hasActiveFilters = selectedTypes.length > 0 || selectedYear !== 'all';
+  const hasActiveFilters = selectedTypes.length > 0 || selectedYear !== 'all' || selectedStatus !== 'all';
 
   return (
     <div className="space-y-4">
@@ -80,6 +85,21 @@ export function CircularFilters({
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Status</Label>
+        <Select value={selectedStatus} onValueChange={onStatusChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="valid">Valid</SelectItem>
+            <SelectItem value="obsolete">Obsolete</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Year Filter */}
