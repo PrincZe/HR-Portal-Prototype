@@ -124,7 +124,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
         action: 'download_resource',
         resource_type: 'resource',
         resource_id: resource.id,
-        metadata: { file_name: resource.file_name, category: resource.category },
+        metadata: { file_name: resource.file_name, topic: resource.topic },
       });
 
       toast.success('Downloading resource...');
