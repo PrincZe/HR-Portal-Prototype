@@ -231,24 +231,24 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Upload Circular</CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm">
           Fill in all required fields and upload the circular document with any annexes
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* 1. Applicable For */}
             <FormField
               control={form.control}
               name="applicable_for"
               render={({ field }) => (
-                <FormItem className="space-y-3">
+                <FormItem>
                   <FormLabel>Applicable For *</FormLabel>
                   <FormControl>
-                    <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="civil_service_and_sb" id="cs_and_sb" />
                         <label htmlFor="cs_and_sb" className="text-sm font-normal cursor-pointer">
@@ -303,9 +303,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                     <FormControl>
                       <Input placeholder="e.g., 15/2026" {...field} />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      Format: NUMBER/YEAR (e.g., 15/2026)
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -323,7 +320,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
-                    <FormDescription className="text-xs">When circular was issued</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -349,7 +345,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription className="text-xs">Main category</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -387,13 +382,13 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
+                  <FormItem>
                     <FormLabel>Circular Status *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         value={field.value}
-                        className="flex gap-4"
+                        className="flex gap-4 mt-2"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="valid" id="status_valid" />
@@ -425,7 +420,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   <FormControl>
                     <Input placeholder="Enter circular title" {...field} maxLength={255} />
                   </FormControl>
-                  <FormDescription className="text-xs">Maximum 255 characters</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -437,13 +431,13 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 control={form.control}
                 name="notify_update"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
+                  <FormItem>
                     <FormLabel>Turn On Notification <span className="text-xs text-muted-foreground font-normal">(doesn't work yet)</span></FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={(value) => field.onChange(value === 'true')}
                         value={field.value ? 'true' : 'false'}
-                        className="flex gap-4"
+                        className="flex gap-4 mt-2"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="true" id="notify_yes" />
@@ -482,7 +476,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                         <SelectItem value="full_compliance">Full Compliance</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription className="text-xs">Required compliance level</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -513,9 +506,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                       )}
                     </div>
                   </FormControl>
-                  <FormDescription className="text-xs">
-                    Max 10MB. PDF, DOC, DOCX
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -523,10 +513,8 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
 
             {/* 12. Upload Annex Documents */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <FormLabel>Attachments (Optional) {annexFiles.length > 0 && <span className="text-[#17A2B8]">- {annexFiles.length} file(s)</span>}</FormLabel>
-              </div>
-              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#17A2B8] transition-colors">
+              <FormLabel>Attachments (Optional) {annexFiles.length > 0 && <span className="text-[#17A2B8]">- {annexFiles.length} file(s)</span>}</FormLabel>
+              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-3 text-center hover:border-[#17A2B8] transition-colors">
                 <input
                   type="file"
                   multiple
@@ -535,27 +523,24 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   className="hidden"
                   id="annex-upload"
                 />
-                <label htmlFor="annex-upload" className="cursor-pointer">
-                  <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                <label htmlFor="annex-upload" className="cursor-pointer block">
+                  <Upload className="h-6 w-6 mx-auto text-gray-400 mb-1" />
                   <p className="text-sm text-gray-600 font-medium">
                     Click to add attachment files
                   </p>
-                  <p className="text-sm text-gray-500">
-                    You can click multiple times to add more files
-                  </p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Accepted: PDF, DOC, DOCX • Max: 10MB per file
+                  <p className="text-xs text-gray-400 mt-1">
+                    PDF, DOC, DOCX • Max 10MB • Click multiple times to add more
                   </p>
                   {annexFiles.length > 0 && (
-                    <p className="text-xs text-[#17A2B8] font-medium mt-2">
-                      ✓ Click again to add more attachments
+                    <p className="text-xs text-[#17A2B8] font-medium mt-1">
+                      ✓ Click again to add more
                     </p>
                   )}
                 </label>
               </div>
 
               {annexFiles.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1.5">
                   {annexFiles.map((file, index) => (
                     <div
                       key={index}
@@ -584,7 +569,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
             </div>
 
             {/* 13 & 14. Related Circulars */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <FormLabel>Related Circulars (Optional)</FormLabel>
                 <Button
