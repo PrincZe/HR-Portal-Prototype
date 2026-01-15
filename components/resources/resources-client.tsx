@@ -202,7 +202,9 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
 
   // Get available topics and category types
   const availableTopics = Array.from(new Set(resources.map(r => r.topic))).sort();
-  const availableCategoryTypes = Array.from(new Set(resources.map(r => r.category_type).filter(Boolean))).sort();
+  const availableCategoryTypes = Array.from(
+    new Set(resources.map(r => r.category_type).filter((type): type is string => Boolean(type)))
+  ).sort();
 
   const isAdmin = user.roles.name === 'system_admin' || user.roles.name === 'portal_admin';
 
@@ -278,7 +280,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
         ) : filteredResources.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">
-              {searchQuery || selectedCategories.length > 0 || selectedFileTypes.length > 0
+              {searchQuery || selectedTopics.length > 0 || selectedCategoryTypes.length > 0
                 ? 'No resources found matching your filters'
                 : 'No resources available yet'}
             </p>
