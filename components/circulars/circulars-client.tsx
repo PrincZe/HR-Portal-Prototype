@@ -19,6 +19,7 @@ interface Circular {
   circular_number: string;
   type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
   status?: 'valid' | 'obsolete' | null;
+  primary_topic?: string | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
