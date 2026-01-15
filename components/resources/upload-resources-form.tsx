@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X } from 'lucide-react';
+import { SECONDARY_TOPICS, RESOURCE_CATEGORY_TYPES } from '@/lib/constants/topics';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_FILE_TYPES = [
@@ -34,7 +35,8 @@ const ACCEPTED_FILE_TYPES = [
 ];
 
 const uploadSchema = z.object({
-  category: z.string().min(1, 'Category is required'),
+  topic: z.string().min(1, 'Topic is required'),
+  category_type: z.string().optional(),
   files: z
     .custom<FileList>()
     .refine((files) => files?.length > 0, 'Please select at least one file')
@@ -74,7 +76,8 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
-      category: '',
+      topic: '',
+      category_type: '',
       ministry_only: false,
     },
   });
@@ -130,8 +133,9 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
         try {
           const file = fileUpload.file;
           const fileExt = getFileExtension(file.name);
+          const year = new Date().getFullYear();
           const fileName = `${Date.now()}_${fileUpload.title.replace(/[^a-z0-9]/gi, '_')}.${fileExt}`;
-          const filePath = `${values.category}/${fileName}`;
+          const filePath = `${values.topic}/${year}/${fileName}`;
 
           // Upload file to Supabase Storage
           const { error: uploadError } = await supabase.storage
@@ -146,10 +150,10 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
           // Insert resource record
           const { error: insertError } = await supabase.from('resources').insert({
             title: fileUpload.title,
-            category: values.category,
+            topic: values.topic,
+            category_type: values.category_type || null,
             file_path: filePath,
             file_name: file.name,
-            file_type: fileExt,
             file_size: file.size,
             description: fileUpload.description || null,
             min_role_tier: values.min_role_tier ? parseInt(values.min_role_tier) : null,
@@ -187,7 +191,8 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
         action: 'upload_resources',
         resource_type: 'resource',
         metadata: {
-          category: values.category,
+          topic: values.topic,
+          category_type: values.category_type,
           total_files: selectedFiles.length,
           success_count: successCount,
           error_count: errorCount,
@@ -214,15 +219,6 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
     }
   };
 
-  const categories = [
-    'Templates',
-    'Guides',
-    'Forms',
-    'Policies',
-    'Training',
-    'Other',
-  ];
-
   const roleTiers = [
     { value: '1', label: 'System Admin' },
     { value: '2', label: 'Portal Admin' },
@@ -242,29 +238,58 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Category Selection */}
+            {/* Topic Selection */}
             <FormField
               control={form.control}
-              name="category"
+              name="topic"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>Topic *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder="Select topic" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                    <SelectContent className="max-h-[300px]">
+                      {SECONDARY_TOPICS.map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    All uploaded files will be organized under this category
+                    All uploaded files will be organized under this topic
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Category Type Selection (Optional) */}
+            <FormField
+              control={form.control}
+              name="category_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category Type (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category type (optional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-[300px]">
+                      {RESOURCE_CATEGORY_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Additional categorization for resources (e.g., Form, Guide, Template)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
