@@ -33,7 +33,7 @@ export function CircularCard({ circular, onView, onDownload }: CircularCardProps
       hrl: { label: 'HRL', className: 'bg-blue-100 text-blue-800' },
       hrops: { label: 'HR OPS', className: 'bg-green-100 text-green-800' },
       psd: { label: 'PSD', className: 'bg-purple-100 text-purple-800' },
-      psd_minute: { label: 'PSD MIN', className: 'bg-purple-100 text-purple-800' },
+      psd_minute: { label: 'PSD Cir Min', className: 'bg-purple-100 text-purple-800' },
     };
     const badge = config[type as keyof typeof config] || config.psd;
     return <Badge className={badge.className}>{badge.label}</Badge>;

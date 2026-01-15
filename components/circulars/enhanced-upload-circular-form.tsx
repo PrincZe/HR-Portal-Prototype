@@ -239,7 +239,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {/* 1. Applicable For */}
             <FormField
               control={form.control}
@@ -431,63 +431,63 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
-            {/* 9. Turn On Notification */}
-            <FormField
-              control={form.control}
-              name="notify_update"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Turn On Notification <span className="text-xs text-muted-foreground font-normal">(Feature doesn't work yet)</span></FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(value === 'true')}
-                      value={field.value ? 'true' : 'false'}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="notify_yes" />
-                        <label htmlFor="notify_yes" className="text-sm font-normal cursor-pointer">
-                          Yes
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="notify_no" />
-                        <label htmlFor="notify_no" className="text-sm font-normal cursor-pointer">
-                          No
-                        </label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormDescription>
-                    Notify users when this circular is uploaded (placeholder feature)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* 10. SB Compliance */}
-            <FormField
-              control={form.control}
-              name="sb_compliance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>SB Compliance *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {/* 9. Notification + 10. SB Compliance (Side by Side) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="notify_update"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Turn On Notification <span className="text-xs text-muted-foreground font-normal">(doesn't work yet)</span></FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select SB compliance level" />
-                      </SelectTrigger>
+                      <RadioGroup
+                        onValueChange={(value) => field.onChange(value === 'true')}
+                        value={field.value ? 'true' : 'false'}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="true" id="notify_yes" />
+                          <label htmlFor="notify_yes" className="text-sm font-normal cursor-pointer">
+                            Yes
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="false" id="notify_no" />
+                          <label htmlFor="notify_no" className="text-sm font-normal cursor-pointer">
+                            No
+                          </label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="for_information">For Information</SelectItem>
-                      <SelectItem value="partial_compliance">Partial Compliance</SelectItem>
-                      <SelectItem value="full_compliance">Full Compliance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sb_compliance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SB Compliance *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select SB compliance level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="for_information">For Information</SelectItem>
+                        <SelectItem value="partial_compliance">Partial Compliance</SelectItem>
+                        <SelectItem value="full_compliance">Full Compliance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-xs">Required compliance level</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* 11. Upload Main Circular Document */}
             <FormField
@@ -497,7 +497,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 <FormItem>
                   <FormLabel>Upload Circular Document *</FormLabel>
                   <FormControl>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <Input
                         type="file"
                         accept=".pdf,.doc,.docx"
@@ -505,7 +505,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                         {...field}
                       />
                       {selectedMainDoc && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 p-3 rounded-md">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 p-2 rounded-md">
                           <FileText className="h-4 w-4 text-[#17A2B8]" />
                           <span className="flex-1">{selectedMainDoc.name}</span>
                           <span>{(selectedMainDoc.size / 1024 / 1024).toFixed(2)} MB</span>
@@ -513,8 +513,8 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                       )}
                     </div>
                   </FormControl>
-                  <FormDescription>
-                    Max file size: 10MB. Accepted formats: PDF, DOC, DOCX
+                  <FormDescription className="text-xs">
+                    Max 10MB. PDF, DOC, DOCX
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -524,14 +524,9 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
             {/* 12. Upload Annex Documents */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <FormLabel>Upload Annex Documents / Attachments (Optional)</FormLabel>
-                {annexFiles.length > 0 && (
-                  <span className="text-sm text-[#17A2B8] font-medium">
-                    {annexFiles.length} file(s) added
-                  </span>
-                )}
+                <FormLabel>Attachments (Optional) {annexFiles.length > 0 && <span className="text-[#17A2B8]">- {annexFiles.length} file(s)</span>}</FormLabel>
               </div>
-              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-[#17A2B8] transition-colors">
+              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#17A2B8] transition-colors">
                 <input
                   type="file"
                   multiple
@@ -560,16 +555,15 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               </div>
 
               {annexFiles.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium">{annexFiles.length} annex file(s) selected:</p>
+                <div className="mt-3 space-y-2">
                   {annexFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-gray-50 p-3 rounded-md"
+                      className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
                     >
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-[#17A2B8]" />
-                        <span className="text-sm">{file.name}</span>
+                        <span className="text-sm truncate max-w-[300px]">{file.name}</span>
                         <span className="text-xs text-gray-500">
                           ({(file.size / 1024 / 1024).toFixed(2)} MB)
                         </span>
@@ -651,8 +645,8 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
             />
 
             {/* Access Control */}
-            <div className="border-t pt-6 space-y-6">
-              <h3 className="text-sm font-medium">Access Control</h3>
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-medium">Access Control (Optional)</h3>
 
               <FormField
                 control={form.control}
