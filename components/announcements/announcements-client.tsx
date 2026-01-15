@@ -140,7 +140,7 @@ export function AnnouncementsClient({ initialAnnouncements, user }: Announcement
                           {announcement.type.toUpperCase()}
                         </Badge>
                         {isActive(announcement) ? (
-                          <Badge variant="success" className="bg-green-100 text-green-800">
+                          <Badge className="bg-green-100 text-green-800">
                             ACTIVE
                           </Badge>
                         ) : (
