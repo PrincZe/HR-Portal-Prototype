@@ -92,38 +92,36 @@ export function EditAnnouncementDialog({ open, announcement, onClose, onSuccess 
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="type">Type *</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: 'info' | 'warning' | 'error') =>
-                  setFormData({ ...formData, type: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="info">Info (Blue)</SelectItem>
-                  <SelectItem value="warning">Warning (Yellow)</SelectItem>
-                  <SelectItem value="error">Error (Red)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="type">Type *</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value: 'info' | 'warning' | 'error') =>
+                setFormData({ ...formData, type: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="info">Info (Blue)</SelectItem>
+                <SelectItem value="warning">Warning (Yellow)</SelectItem>
+                <SelectItem value="error">Error (Red)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="flex items-center space-x-2 pt-8">
-              <Checkbox
-                id="dismissible"
-                checked={formData.dismissible}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, dismissible: !!checked })
-                }
-              />
-              <label htmlFor="dismissible" className="text-sm font-medium cursor-pointer">
-                Allow users to dismiss
-              </label>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="dismissible"
+              checked={formData.dismissible}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, dismissible: !!checked })
+              }
+            />
+            <label htmlFor="dismissible" className="text-sm font-medium cursor-pointer">
+              Allow users to dismiss
+            </label>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

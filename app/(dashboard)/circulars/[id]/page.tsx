@@ -8,7 +8,8 @@ import { AnnexesSidebar } from '@/components/circulars/annexes-sidebar';
 import { CircularDetailClient } from '@/components/circulars/circular-detail-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, Edit } from 'lucide-react';
+import { isAdmin } from '@/lib/roles';
 
 interface CircularDetailPageProps {
   params: Promise<{ id: string }>;
@@ -176,35 +177,51 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
                 <h3 className="text-lg font-semibold text-gray-900">
                   Main Document
                 </h3>
-                {mainDocData?.signedUrl && (
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
+                  {/* Edit Button - Only for Admins */}
+                  {isAdmin(user.roles.name) && (
                     <Button
                       asChild
                       variant="outline"
                       size="sm"
                     >
-                      <a
-                        href={mainDocData.signedUrl}
-                        download
-                      >
-                        Download PDF
-                      </a>
+                      <Link href={`/circulars/${id}/edit`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Link>
                     </Button>
-                    <Button
-                      asChild
-                      size="sm"
-                      className="bg-[#17A2B8] hover:bg-[#138496]"
-                    >
-                      <a
-                        href={mainDocData.signedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                  )}
+                  
+                  {mainDocData?.signedUrl && (
+                    <>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
                       >
-                        Open in New Tab
-                      </a>
-                    </Button>
-                  </div>
-                )}
+                        <a
+                          href={mainDocData.signedUrl}
+                          download
+                        >
+                          Download PDF
+                        </a>
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        className="bg-[#17A2B8] hover:bg-[#138496]"
+                      >
+                        <a
+                          href={mainDocData.signedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open in New Tab
+                        </a>
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* PDF Viewer */}
