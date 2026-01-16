@@ -350,39 +350,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
-            {/* 6. Status */}
-            <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Circular Status *</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex gap-4 mt-2"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="valid" id="status_valid" />
-                          <label htmlFor="status_valid" className="text-sm font-normal cursor-pointer">
-                            Valid
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="obsolete" id="status_obsolete" />
-                          <label htmlFor="status_obsolete" className="text-sm font-normal cursor-pointer">
-                            Obsolete
-                          </label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-            {/* 7. Circular Title */}
+            {/* 6. Circular Title */}
             <FormField
               control={form.control}
               name="title"
@@ -397,62 +365,29 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
-            {/* 9. Notification + 10. SB Compliance (Side by Side) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="notify_update"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Turn On Notification <span className="text-xs text-muted-foreground font-normal">(doesn't work yet)</span></FormLabel>
+            {/* 7. SB Compliance */}
+            <FormField
+              control={form.control}
+              name="sb_compliance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>SB Compliance *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <RadioGroup
-                        onValueChange={(value) => field.onChange(value === 'true')}
-                        value={field.value ? 'true' : 'false'}
-                        className="flex gap-4 mt-2"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="true" id="notify_yes" />
-                          <label htmlFor="notify_yes" className="text-sm font-normal cursor-pointer">
-                            Yes
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="false" id="notify_no" />
-                          <label htmlFor="notify_no" className="text-sm font-normal cursor-pointer">
-                            No
-                          </label>
-                        </div>
-                      </RadioGroup>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select SB compliance level" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sb_compliance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SB Compliance *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select SB compliance level" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="for_information">For Information</SelectItem>
-                        <SelectItem value="partial_compliance">Partial Compliance</SelectItem>
-                        <SelectItem value="full_compliance">Full Compliance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      <SelectItem value="for_information">For Information</SelectItem>
+                      <SelectItem value="partial_compliance">Partial Compliance</SelectItem>
+                      <SelectItem value="full_compliance">Full Compliance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* 11. Upload Main Circular Document */}
             <FormField

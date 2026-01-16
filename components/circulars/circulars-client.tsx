@@ -41,7 +41,6 @@ export function CircularsClient({ user }: CircularsClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
@@ -51,7 +50,7 @@ export function CircularsClient({ user }: CircularsClientProps) {
 
   useEffect(() => {
     filterCirculars();
-  }, [circulars, searchQuery, selectedTypes, selectedYear, selectedStatus, selectedTopic]);
+  }, [circulars, searchQuery, selectedTypes, selectedYear, selectedTopic]);
 
   const fetchCirculars = async () => {
     setLoading(true);
@@ -59,9 +58,11 @@ export function CircularsClient({ user }: CircularsClientProps) {
       const supabase = createClient();
       
       // Fetch circulars - RLS will filter based on user's role
+      // Only show valid circulars in the listing
       const { data, error } = await supabase
         .from('circulars')
         .select('*')
+        .eq('status', 'valid')
         .order('uploaded_at', { ascending: false });
 
       if (error) throw error;
@@ -96,11 +97,6 @@ export function CircularsClient({ user }: CircularsClientProps) {
     // Filter by topic
     if (selectedTopic !== 'all') {
       filtered = filtered.filter(c => c.primary_topic === selectedTopic);
-    }
-
-    // Filter by status
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(c => c.status === selectedStatus);
     }
 
     // Filter by year (extract from circular number e.g., "15/2026")
@@ -168,8 +164,6 @@ export function CircularsClient({ user }: CircularsClientProps) {
             onTypesChange={setSelectedTypes}
             selectedYear={selectedYear}
             onYearChange={setSelectedYear}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
             selectedTopic={selectedTopic}
             onTopicChange={setSelectedTopic}
             availableYears={availableYears}
