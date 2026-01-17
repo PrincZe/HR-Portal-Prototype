@@ -32,6 +32,8 @@ const ACCEPTED_FILE_TYPES = [
   'image/jpeg',
   'image/png',
   'image/gif',
+  'application/zip',
+  'application/x-zip-compressed',
 ];
 
 const uploadSchema = z.object({
@@ -46,7 +48,7 @@ const uploadSchema = z.object({
     )
     .refine(
       (files) => Array.from(files).every(file => ACCEPTED_FILE_TYPES.includes(file.type)),
-      'Invalid file type. Accepted: PDF, Word, Excel, PowerPoint, CSV, Images'
+      'Invalid file type. Accepted: PDF, Word, Excel, PowerPoint, CSV, Images, ZIP'
     ),
   min_role_tier: z.string().optional(),
   ministry_only: z.boolean().default(false),
@@ -307,7 +309,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                     <Input
                       type="file"
                       multiple
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.jpg,.jpeg,.png,.gif"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.jpg,.jpeg,.png,.gif,.zip"
                       onChange={(e) => {
                         onChange(e.target.files);
                         handleFileSelect(e.target.files);
@@ -317,7 +319,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Max 50MB per file. Accepted: PDF, Word, Excel, PowerPoint, CSV, Images
+                    Max 50MB per file. Accepted: PDF, Word, Excel, PowerPoint, CSV, Images, ZIP
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
