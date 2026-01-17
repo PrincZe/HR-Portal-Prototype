@@ -157,14 +157,14 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
 
   if (viewMode === 'list') {
     return (
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="hover:shadow-md transition-shadow overflow-hidden">
         <div className="flex items-center gap-4 p-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-muted">
+          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-muted shrink-0">
             {getFileIcon(resource.file_name)}
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               {getTopicBadge(resource.topic)}
               {getCategoryTypeBadge(resource.category_type)}
               <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
@@ -174,20 +174,20 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
             {resource.description && (
               <p className="text-sm text-muted-foreground truncate">{resource.description}</p>
             )}
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
               <span>{formatDistanceToNow(new Date(resource.uploaded_at), { addSuffix: true })}</span>
               <span>{formatFileSize(resource.file_size)}</span>
               <span>{getAccessLevel()}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button onClick={onView} variant="default" size="sm">
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className="mr-1 h-4 w-4" />
               View
             </Button>
             <Button onClick={onDownload} variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="mr-1 h-4 w-4" />
               Download
             </Button>
             {onDelete && (
@@ -212,15 +212,15 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
   }
 
   return (
-    <Card className="flex flex-col hover:shadow-lg transition-shadow">
-      <CardHeader>
+    <Card className="flex flex-col hover:shadow-lg transition-shadow overflow-hidden">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            {getFileIcon(resource.file_name)}
+          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+            <span className="shrink-0">{getFileIcon(resource.file_name)}</span>
             {getTopicBadge(resource.topic)}
             {getCategoryTypeBadge(resource.category_type)}
           </div>
-          <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
+          <span className="text-xs text-muted-foreground uppercase shrink-0">{getFileType(resource.file_name)}</span>
         </div>
         <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
         {renderTags(resource.tags)}
@@ -229,36 +229,36 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
         )}
       </CardHeader>
 
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 pt-0">
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDistanceToNow(new Date(resource.uploaded_at), { addSuffix: true })}</span>
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span className="truncate">{formatDistanceToNow(new Date(resource.uploaded_at), { addSuffix: true })}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span>{getAccessLevel()}</span>
+            <Shield className="h-4 w-4 shrink-0" />
+            <span className="truncate">{getAccessLevel()}</span>
           </div>
           <div className="flex items-center gap-2">
-            <File className="h-4 w-4" />
-            <span>{formatFileSize(resource.file_size)}</span>
+            <File className="h-4 w-4 shrink-0" />
+            <span className="truncate">{formatFileSize(resource.file_size)}</span>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="flex gap-2">
-        <Button onClick={onView} variant="default" className="flex-1">
-          <Eye className="mr-2 h-4 w-4" />
-          View
+      <CardFooter className="flex gap-2 pt-3">
+        <Button onClick={onView} variant="default" size="sm" className="flex-1 min-w-0">
+          <Eye className="mr-1 h-4 w-4 shrink-0" />
+          <span>View</span>
         </Button>
-        <Button onClick={onDownload} variant="outline" className="flex-1">
-          <Download className="mr-2 h-4 w-4" />
-          Download
+        <Button onClick={onDownload} variant="outline" size="sm" className="flex-1 min-w-0">
+          <Download className="mr-1 h-4 w-4 shrink-0" />
+          <span>Download</span>
         </Button>
         {onDelete && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="shrink-0">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
