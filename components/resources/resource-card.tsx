@@ -19,6 +19,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
+import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 
 interface Resource {
   id: string;
@@ -79,10 +80,15 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
     }
   };
 
+  const getTopicLabel = (topic: string) => {
+    const found = SECONDARY_TOPICS.find(t => t.value === topic);
+    return found ? found.label : topic.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   const getTopicBadge = (topic: string) => {
     return (
       <Badge className="bg-[#17A2B8] text-white">
-        {topic}
+        {getTopicLabel(topic)}
       </Badge>
     );
   };
