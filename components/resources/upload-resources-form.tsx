@@ -19,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X } from 'lucide-react';
 import { SECONDARY_TOPICS, RESOURCE_CATEGORY_TYPES } from '@/lib/constants/topics';
+import { TagInput } from '@/components/ui/tag-input';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_FILE_TYPES = [
@@ -46,6 +47,7 @@ const uploadSchema = z.object({
   }),
   topic: z.string().min(1, 'Topic is required'),
   category_type: z.string().optional(),
+  tags: z.array(z.string()).default([]),
   files: z
     .custom<FileList>()
     .refine((files) => files?.length > 0, 'Please select at least one file')
@@ -87,6 +89,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
     defaultValues: {
       topic: '',
       category_type: '',
+      tags: [],
       ministry_only: false,
     },
   });
@@ -163,6 +166,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
             circular_type: values.circular_type,
             topic: values.topic,
             category_type: values.category_type || null,
+            tags: values.tags,
             file_path: filePath,
             file_name: file.name,
             file_size: file.size,
@@ -206,6 +210,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
           circular_type: values.circular_type,
           topic: values.topic,
           category_type: values.category_type,
+          tags: values.tags,
           total_files: selectedFiles.length,
           success_count: successCount,
           error_count: errorCount,
@@ -359,6 +364,29 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                   </Select>
                   <FormDescription>
                     Additional categorization for resources (e.g., Form, Guide, Template)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Tags */}
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags (Optional)</FormLabel>
+                  <FormControl>
+                    <TagInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add tags..."
+                      disabled={isUploading}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Add keywords to help users find this resource
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

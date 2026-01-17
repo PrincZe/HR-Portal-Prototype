@@ -56,6 +56,7 @@ export interface Resource {
   id: string;
   title: string;
   topic: string;
+  tags: string[] | null;
   file_path: string;
   file_name: string;
   file_size: number | null;

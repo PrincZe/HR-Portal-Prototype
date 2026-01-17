@@ -25,6 +25,7 @@ interface Resource {
   title: string;
   topic: string;
   category_type: string | null;
+  tags: string[] | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
@@ -88,7 +89,7 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
 
   const getCategoryTypeBadge = (categoryType: string | null) => {
     if (!categoryType) return null;
-    
+
     const colors: Record<string, string> = {
       'Templates': 'bg-blue-100 text-blue-800',
       'Guides': 'bg-green-100 text-green-800',
@@ -101,6 +102,23 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
       <Badge className={colors[categoryType] || colors['Other']}>
         {categoryType}
       </Badge>
+    );
+  };
+
+  const renderTags = (tags: string[] | null) => {
+    if (!tags || tags.length === 0) return null;
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {tags.map((tag, index) => (
+          <span
+            key={index}
+            className="inline-flex items-center px-2 py-0.5 text-xs rounded-full"
+            style={{ backgroundColor: '#E3F2FD', color: '#1976D2' }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
     );
   };
 
@@ -146,6 +164,7 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
               <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
             </div>
             <h3 className="font-semibold truncate">{resource.title}</h3>
+            {renderTags(resource.tags)}
             {resource.description && (
               <p className="text-sm text-muted-foreground truncate">{resource.description}</p>
             )}
@@ -198,6 +217,7 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
           <span className="text-xs text-muted-foreground uppercase">{getFileType(resource.file_name)}</span>
         </div>
         <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
+        {renderTags(resource.tags)}
         {resource.description && (
           <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
         )}

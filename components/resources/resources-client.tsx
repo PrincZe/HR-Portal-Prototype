@@ -18,6 +18,7 @@ interface Resource {
   title: string;
   topic: string;
   category_type: string | null;
+  tags: string[] | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
@@ -82,7 +83,8 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
           r.title.toLowerCase().includes(query) ||
           r.topic.toLowerCase().includes(query) ||
           r.description?.toLowerCase().includes(query) ||
-          r.file_name.toLowerCase().includes(query)
+          r.file_name.toLowerCase().includes(query) ||
+          r.tags?.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
