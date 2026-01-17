@@ -246,19 +246,17 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
         </div>
       </CardContent>
 
-      <CardFooter className="flex gap-2 pt-3">
-        <Button onClick={onView} variant="default" size="sm" className="flex-1 min-w-0">
-          <Eye className="mr-1 h-4 w-4 shrink-0" />
-          <span>View</span>
+      <CardFooter className="flex justify-end gap-1 pt-3">
+        <Button onClick={onView} variant="default" size="icon" title="View">
+          <Eye className="h-4 w-4" />
         </Button>
-        <Button onClick={onDownload} variant="outline" size="sm" className="flex-1 min-w-0">
-          <Download className="mr-1 h-4 w-4 shrink-0" />
-          <span>Download</span>
+        <Button onClick={onDownload} variant="outline" size="icon" title="Download">
+          <Download className="h-4 w-4" />
         </Button>
         {onDelete && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button variant="ghost" size="icon" title="More options">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
