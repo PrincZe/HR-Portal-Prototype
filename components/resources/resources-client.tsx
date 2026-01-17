@@ -37,8 +37,8 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
   const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [selectedCategoryTypes, setSelectedCategoryTypes] = useState<string[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [selectedCategoryType, setSelectedCategoryType] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -48,7 +48,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
 
   useEffect(() => {
     filterResources();
-  }, [resources, searchQuery, selectedTopics, selectedCategoryTypes]);
+  }, [resources, searchQuery, selectedTopic, selectedCategoryType]);
 
   const fetchResources = async () => {
     setLoading(true);
@@ -87,13 +87,13 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
     }
 
     // Filter by topic
-    if (selectedTopics.length > 0) {
-      filtered = filtered.filter(r => selectedTopics.includes(r.topic));
+    if (selectedTopic !== 'all') {
+      filtered = filtered.filter(r => r.topic === selectedTopic);
     }
 
     // Filter by category type
-    if (selectedCategoryTypes.length > 0) {
-      filtered = filtered.filter(r => r.category_type && selectedCategoryTypes.includes(r.category_type));
+    if (selectedCategoryType !== 'all') {
+      filtered = filtered.filter(r => r.category_type === selectedCategoryType);
     }
 
     setFilteredResources(filtered);
@@ -214,10 +214,10 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
       <div className={`space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
         <Card className="p-4">
           <ResourceFilters
-            selectedTopics={selectedTopics}
-            onTopicsChange={setSelectedTopics}
-            selectedCategoryTypes={selectedCategoryTypes}
-            onCategoryTypesChange={setSelectedCategoryTypes}
+            selectedTopic={selectedTopic}
+            onTopicChange={setSelectedTopic}
+            selectedCategoryType={selectedCategoryType}
+            onCategoryTypeChange={setSelectedCategoryType}
             availableTopics={availableTopics}
             availableCategoryTypes={availableCategoryTypes}
           />
@@ -280,7 +280,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
         ) : filteredResources.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">
-              {searchQuery || selectedTopics.length > 0 || selectedCategoryTypes.length > 0
+              {searchQuery || selectedTopic !== 'all' || selectedCategoryType !== 'all'
                 ? 'No resources found matching your filters'
                 : 'No resources available yet'}
             </p>

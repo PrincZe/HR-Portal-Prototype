@@ -1,50 +1,33 @@
 'use client';
 
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ResourceFiltersProps {
-  selectedTopics: string[];
-  onTopicsChange: (topics: string[]) => void;
-  selectedCategoryTypes: string[];
-  onCategoryTypesChange: (types: string[]) => void;
+  selectedTopic: string;
+  onTopicChange: (topic: string) => void;
+  selectedCategoryType: string;
+  onCategoryTypeChange: (type: string) => void;
   availableTopics: string[];
   availableCategoryTypes: string[];
 }
 
 export function ResourceFilters({
-  selectedTopics,
-  onTopicsChange,
-  selectedCategoryTypes,
-  onCategoryTypesChange,
+  selectedTopic,
+  onTopicChange,
+  selectedCategoryType,
+  onCategoryTypeChange,
   availableTopics,
   availableCategoryTypes,
 }: ResourceFiltersProps) {
-  const handleTopicToggle = (topic: string) => {
-    if (selectedTopics.includes(topic)) {
-      onTopicsChange(selectedTopics.filter(t => t !== topic));
-    } else {
-      onTopicsChange([...selectedTopics, topic]);
-    }
-  };
-
-  const handleCategoryTypeToggle = (type: string) => {
-    if (selectedCategoryTypes.includes(type)) {
-      onCategoryTypesChange(selectedCategoryTypes.filter(t => t !== type));
-    } else {
-      onCategoryTypesChange([...selectedCategoryTypes, type]);
-    }
-  };
-
   const handleClearAll = () => {
-    onTopicsChange([]);
-    onCategoryTypesChange([]);
+    onTopicChange('all');
+    onCategoryTypeChange('all');
   };
 
-  const hasActiveFilters = selectedTopics.length > 0 || selectedCategoryTypes.length > 0;
+  const hasActiveFilters = selectedTopic !== 'all' || selectedCategoryType !== 'all';
 
   return (
     <div className="space-y-4">
@@ -63,55 +46,41 @@ export function ResourceFilters({
         )}
       </div>
 
-      {/* Topic Filters */}
-      {availableTopics.length > 0 && (
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Topic</Label>
-          <ScrollArea className="h-[200px]">
-            <div className="space-y-2 pr-4">
-              {availableTopics.map((topic) => (
-                <div key={topic} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`topic-${topic}`}
-                    checked={selectedTopics.includes(topic)}
-                    onCheckedChange={() => handleTopicToggle(topic)}
-                  />
-                  <label
-                    htmlFor={`topic-${topic}`}
-                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer capitalize"
-                  >
-                    {topic.replace(/_/g, ' ')}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-      )}
+      {/* Topic Filter */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Topic</Label>
+        <Select value={selectedTopic} onValueChange={onTopicChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Topics</SelectItem>
+            {availableTopics.map((topic) => (
+              <SelectItem key={topic} value={topic}>
+                {topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      {/* Category Type Filters */}
+      {/* Category Type Filter */}
       {availableCategoryTypes.length > 0 && (
         <div className="space-y-3">
           <Label className="text-sm font-medium">Category Type</Label>
-          <ScrollArea className="h-[150px]">
-            <div className="space-y-2 pr-4">
+          <Select value={selectedCategoryType} onValueChange={onCategoryTypeChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
               {availableCategoryTypes.map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`cat-type-${type}`}
-                    checked={selectedCategoryTypes.includes(type)}
-                    onCheckedChange={() => handleCategoryTypeToggle(type)}
-                  />
-                  <label
-                    htmlFor={`cat-type-${type}`}
-                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer capitalize"
-                  >
-                    {type}
-                  </label>
-                </div>
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
               ))}
-            </div>
-          </ScrollArea>
+            </SelectContent>
+          </Select>
         </div>
       )}
     </div>
