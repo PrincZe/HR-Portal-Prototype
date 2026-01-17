@@ -1,8 +1,18 @@
 'use client';
 
 import { AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+
+const STORAGE_KEY = 'hrportal_banner_dismissed';
+const EXPIRY_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+interface DismissedBannerData {
+  [id: string]: {
+    dismissedAt: number;
+    expiresAt: number;
+  };
+}
 
 interface Announcement {
   id: string;
@@ -15,8 +25,49 @@ interface AnnouncementBannerProps {
   announcements?: Announcement[];
 }
 
+function getDismissedData(): DismissedBannerData {
+  if (typeof window === 'undefined') return {};
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return {};
+    return JSON.parse(stored);
+  } catch {
+    return {};
+  }
+}
+
+function saveDismissedData(data: DismissedBannerData): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function AnnouncementBanner({ announcements = [] }: AnnouncementBannerProps) {
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+
+  // On mount, check localStorage and filter out expired dismissals
+  useEffect(() => {
+    const now = Date.now();
+    const stored = getDismissedData();
+    const validDismissals: DismissedBannerData = {};
+    const validIds: string[] = [];
+
+    for (const [id, data] of Object.entries(stored)) {
+      if (data.expiresAt > now) {
+        validDismissals[id] = data;
+        validIds.push(id);
+      }
+    }
+
+    // Clean up expired entries
+    if (Object.keys(validDismissals).length !== Object.keys(stored).length) {
+      saveDismissedData(validDismissals);
+    }
+
+    setDismissedIds(validIds);
+  }, []);
 
   if (!announcements || announcements.length === 0) {
     return null;
@@ -31,6 +82,13 @@ export function AnnouncementBanner({ announcements = [] }: AnnouncementBannerPro
   }
 
   const handleDismiss = (id: string) => {
+    const now = Date.now();
+    const stored = getDismissedData();
+    stored[id] = {
+      dismissedAt: now,
+      expiresAt: now + EXPIRY_DURATION,
+    };
+    saveDismissedData(stored);
     setDismissedIds([...dismissedIds, id]);
   };
 

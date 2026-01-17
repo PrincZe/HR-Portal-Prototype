@@ -210,7 +210,7 @@ export function UploadResourceForm({ user }: UploadResourceFormProps) {
                     <div className="space-y-3">
                       <Input
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
                         onChange={(e) => {
                           onChange(e.target.files);
                           setSelectedFile(e.target.files?.[0] || null);
@@ -227,7 +227,7 @@ export function UploadResourceForm({ user }: UploadResourceFormProps) {
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Max file size: 10MB. Accepted: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX
+                    Max file size: 10MB. Accepted: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -9,6 +9,8 @@ const ACCEPTED_FILE_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip',
+  'application/x-zip-compressed',
 ];
 
 export const resourceUploadSchema = z.object({
@@ -34,7 +36,7 @@ export const resourceUploadSchema = z.object({
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, 'Max file size is 10MB')
     .refine(
       (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
-      'File type not accepted. Please use PDF, DOC, DOCX, XLS, XLSX, PPT, or PPTX'
+      'File type not accepted. Please use PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, or ZIP'
     ),
 
   // Description (Optional)
