@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X } from 'lucide-react';
@@ -37,6 +38,12 @@ const ACCEPTED_FILE_TYPES = [
 ];
 
 const uploadSchema = z.object({
+  applicable_for: z.enum(['civil_service_and_sb', 'civil_service_only'], {
+    message: 'Please select who this resource applies to',
+  }),
+  circular_type: z.enum(['hrl', 'hrops'], {
+    message: 'Please select a circular type',
+  }),
   topic: z.string().min(1, 'Topic is required'),
   category_type: z.string().optional(),
   files: z
@@ -152,6 +159,8 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
           // Insert resource record
           const { error: insertError } = await supabase.from('resources').insert({
             title: fileUpload.title,
+            applicable_for: values.applicable_for,
+            circular_type: values.circular_type,
             topic: values.topic,
             category_type: values.category_type || null,
             file_path: filePath,
@@ -193,6 +202,8 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
         action: 'upload_resources',
         resource_type: 'resource',
         metadata: {
+          applicable_for: values.applicable_for,
+          circular_type: values.circular_type,
           topic: values.topic,
           category_type: values.category_type,
           total_files: selectedFiles.length,
@@ -240,6 +251,62 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Applicable For */}
+            <FormField
+              control={form.control}
+              name="applicable_for"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Applicable For *</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="civil_service_and_sb" id="res_cs_and_sb" />
+                        <label htmlFor="res_cs_and_sb" className="text-sm font-normal cursor-pointer">
+                          Civil Service and Statutory Boards
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="civil_service_only" id="res_cs_only" />
+                        <label htmlFor="res_cs_only" className="text-sm font-normal cursor-pointer">
+                          Civil Service Only
+                        </label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Circular Type */}
+            <FormField
+              control={form.control}
+              name="circular_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Circular Type *</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hrl" id="res_type_hrl" />
+                        <label htmlFor="res_type_hrl" className="text-sm font-normal cursor-pointer">
+                          HRL Circular
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hrops" id="res_type_hrops" />
+                        <label htmlFor="res_type_hrops" className="text-sm font-normal cursor-pointer">
+                          HR Ops Circular
+                        </label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Topic Selection */}
             <FormField
               control={form.control}

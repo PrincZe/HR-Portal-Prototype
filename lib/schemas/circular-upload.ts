@@ -14,7 +14,7 @@ export const circularUploadSchema = z.object({
   }),
 
   // 2. Circular Type (Required)
-  type: z.enum(['hrl', 'hrops', 'psd', 'psd_minute'], {
+  type: z.enum(['hrl', 'hrops'], {
     message: 'Please select a circular type',
   }),
 

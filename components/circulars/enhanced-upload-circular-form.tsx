@@ -268,46 +268,48 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
-            {/* 2 & 3. Circular Type + Number (Side by Side) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Circular Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select circular type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="hrl">HRL Circular</SelectItem>
-                        <SelectItem value="hrops">HR Ops Circular</SelectItem>
-                        <SelectItem value="psd">PSD Circular</SelectItem>
-                        <SelectItem value="psd_minute">PSD Circular Minute</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* 2. Circular Type */}
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Circular Type *</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hrl" id="type_hrl" />
+                        <label htmlFor="type_hrl" className="text-sm font-normal cursor-pointer">
+                          HRL Circular
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hrops" id="type_hrops" />
+                        <label htmlFor="type_hrops" className="text-sm font-normal cursor-pointer">
+                          HR Ops Circular
+                        </label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="circular_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Circular Number *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 15/2026" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* 3. Circular Number */}
+            <FormField
+              control={form.control}
+              name="circular_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Circular Number *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 15/2026" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* 4. Issue Date */}
             <FormField
