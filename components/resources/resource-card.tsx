@@ -214,13 +214,13 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
   return (
     <Card className="flex flex-col hover:shadow-lg transition-shadow overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
-            <span className="shrink-0">{getFileIcon(resource.file_name)}</span>
-            {getTopicBadge(resource.topic)}
-            {getCategoryTypeBadge(resource.category_type)}
-          </div>
-          <span className="text-xs text-muted-foreground uppercase shrink-0">{getFileType(resource.file_name)}</span>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="shrink-0">{getFileIcon(resource.file_name)}</span>
+          <span className="text-xs text-muted-foreground uppercase font-medium">{getFileType(resource.file_name)}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          {getTopicBadge(resource.topic)}
+          {getCategoryTypeBadge(resource.category_type)}
         </div>
         <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
         {renderTags(resource.tags)}
