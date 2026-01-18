@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  FolderOpen, 
-  Users, 
+import {
+  LayoutDashboard,
+  FileText,
+  FolderOpen,
+  Users,
   Calendar,
   Upload,
   User,
   LogOut,
-  Megaphone
+  Megaphone,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -24,9 +25,11 @@ const allNavigation = [
   { name: 'Home', href: '/', icon: LayoutDashboard, roles: 'all' },
   { name: 'Circulars', href: '/circulars', icon: FileText, roles: 'all' },
   { name: 'Resources', href: '/resources', icon: FolderOpen, roles: 'all' },
+  { name: 'FAQs', href: '/faqs', icon: HelpCircle, roles: 'all' },
   { name: 'HRL Meetings', href: '/hrl-meetings', icon: Calendar, roles: ['system_admin', 'hrl_ministry', 'hrl_statboard', 'hrl_rep_ministry', 'hrl_rep_statboard'] },
   { name: 'Account Management', href: '/admin/users', icon: Users, roles: ['system_admin', 'portal_admin'] },
   { name: 'Manage Announcements', href: '/admin/announcements', icon: Megaphone, roles: ['system_admin', 'portal_admin'] },
+  { name: 'Manage FAQs', href: '/admin/faqs', icon: HelpCircle, roles: ['system_admin', 'portal_admin'] },
   { name: 'Upload Circular', href: '/circulars/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
   { name: 'Upload Resources', href: '/resources/upload', icon: Upload, roles: ['system_admin', 'portal_admin'] },
 ];

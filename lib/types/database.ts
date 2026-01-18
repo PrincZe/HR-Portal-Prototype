@@ -79,3 +79,15 @@ export interface HRLMeeting {
   uploaded_by: string;
   uploaded_at: string;
 }
+
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string | null;
+  display_order: number | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
