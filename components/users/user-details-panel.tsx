@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User } from '@/lib/types/database';
-import { Edit, CheckCircle, XCircle, Calendar, Mail, Building2, Shield } from 'lucide-react';
+import { Edit, CheckCircle, XCircle, Calendar, Mail, Building2, Shield, FolderKey, Tags } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { CONTENT_GROUPS, PRIMARY_TOPICS } from '@/lib/constants/topics';
 
 interface UserDetailsPanelProps {
   user: User;
@@ -53,6 +54,17 @@ export function UserDetailsPanel({
     );
   };
 
+  const getContentGroupLabel = (contentGroup: string | null) => {
+    if (!contentGroup) return null;
+    const group = CONTENT_GROUPS.find(g => g.value === contentGroup);
+    return group?.label || contentGroup;
+  };
+
+  const getTopicLabel = (topicValue: string) => {
+    const topic = PRIMARY_TOPICS.find(t => t.value === topicValue);
+    return topic?.label || topicValue;
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
@@ -93,6 +105,36 @@ export function UserDetailsPanel({
                 <div className="flex-1">
                   <p className="text-sm font-medium">Agency</p>
                   <p className="text-sm text-muted-foreground">{user.agency}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Content Group */}
+            {user.content_group && (
+              <div className="flex items-start gap-3">
+                <FolderKey className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Content Group</p>
+                  <p className="text-sm text-muted-foreground">
+                    {getContentGroupLabel(user.content_group)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Assigned Topics */}
+            {user.assigned_topics && user.assigned_topics.length > 0 && (
+              <div className="flex items-start gap-3">
+                <Tags className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Assigned Topics</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {user.assigned_topics.map((topic) => (
+                      <Badge key={topic} variant="secondary" className="text-xs">
+                        {getTopicLabel(topic)}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

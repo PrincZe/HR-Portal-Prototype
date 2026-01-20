@@ -28,12 +28,7 @@ export default async function EditCircularPage({ params }: EditCircularPageProps
     redirect('/login');
   }
 
-  // Check if user has admin role (tier 1 or 2)
-  if (!user.roles || user.roles.tier > 2) {
-    redirect('/unauthorized');
-  }
-
-  // Fetch the circular to edit
+  // Fetch the circular to edit first (need to check access)
   const { id } = await params;
   const { data: circular, error } = await supabase
     .from('circulars')
@@ -44,6 +39,19 @@ export default async function EditCircularPage({ params }: EditCircularPageProps
   if (error || !circular) {
     console.error('Error fetching circular:', error);
     notFound();
+  }
+
+  // Check if user has permission to edit
+  const isAdmin = user.roles && user.roles.tier <= 2;
+  const isContentEditor = user.roles?.name === 'content_editor';
+
+  // Content Editors can only edit circulars in their assigned topics
+  const hasTopicAccess = isContentEditor &&
+    circular.primary_topic &&
+    user.assigned_topics?.includes(circular.primary_topic);
+
+  if (!isAdmin && !hasTopicAccess) {
+    redirect('/unauthorized');
   }
 
   return (

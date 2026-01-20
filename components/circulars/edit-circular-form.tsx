@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/lib/types/database';
-import { SECONDARY_TOPICS } from '@/lib/constants/topics';
+import { User, PrimaryTopic } from '@/lib/types/database';
+import { PRIMARY_TOPICS } from '@/lib/constants/topics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Loader2, Save, X } from 'lucide-react';
+import { Loader2, Save, X, Info } from 'lucide-react';
 import Link from 'next/link';
+import { getAvailableTopicsForUser, canUploadCircularWithTopic } from '@/lib/access-control';
 
 const editCircularSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must not exceed 255 characters'),
@@ -48,6 +50,15 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
+  // Determine if user is a Content Editor with topic restrictions
+  const isContentEditor = user.roles?.name === 'content_editor';
+  const assignedTopics = user.assigned_topics || [];
+
+  // Get available topics for this user (Content Editors only see their assigned topics)
+  const availableTopics = useMemo(() => {
+    return getAvailableTopicsForUser(user, [...PRIMARY_TOPICS]);
+  }, [user]);
+
   const form = useForm<EditCircularFormValues>({
     resolver: zodResolver(editCircularSchema),
     defaultValues: {
@@ -63,6 +74,14 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
   });
 
   const onSubmit = async (values: EditCircularFormValues) => {
+    // Validate topic access for Content Editors
+    if (isContentEditor && values.primary_topic) {
+      if (!canUploadCircularWithTopic(values.primary_topic, user)) {
+        toast.error('You are not authorized to edit circulars with this topic');
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const supabase = createClient();
@@ -175,6 +194,16 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Primary Topic *</FormLabel>
+                  {isContentEditor && (
+                    <Alert className="mb-2 py-2">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription className="text-sm">
+                        You can only edit circulars for your assigned topics: {assignedTopics.length > 0
+                          ? availableTopics.map(t => t.label).join(', ')
+                          : 'None assigned'}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -182,7 +211,7 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {SECONDARY_TOPICS.map((topic) => (
+                      {availableTopics.map((topic) => (
                         <SelectItem key={topic.value} value={topic.value}>
                           {topic.label}
                         </SelectItem>

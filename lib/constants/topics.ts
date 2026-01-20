@@ -43,9 +43,54 @@ export const SECONDARY_TOPICS = [
   { value: 'values', label: 'Values' },
 ] as const;
 
+// 25 Primary Topics for Access Control
 export const PRIMARY_TOPICS = [
-  { value: 'deployment', label: 'Deployment' },
+  { value: 'business_continuity_planning', label: 'Business Continuity Planning' },
   { value: 'hr_analytics', label: 'HR Analytics' },
+  { value: 'organisational_design', label: 'Organisational Design' },
+  { value: 'public_service_transformation', label: 'Public Service Transformation' },
+  { value: 'internship', label: 'Internship' },
+  { value: 'psc_scholarships', label: 'PSC Scholarships' },
+  { value: 'recruitment_appointment', label: 'Recruitment & Appointment' },
+  { value: 'deployment', label: 'Deployment' },
+  { value: 'learning_growth', label: 'Learning & Growth' },
+  { value: 'performance_management', label: 'Performance Management' },
+  { value: 'talent_management_development', label: 'Talent Management & Development' },
+  { value: 'compensation', label: 'Compensation' },
+  { value: 'conduct_discipline', label: 'Conduct & Discipline' },
+  { value: 'employee_recognition_wellbeing', label: 'Employee Recognition & Wellbeing' },
+  { value: 'flexible_work_arrangements', label: 'Flexible Work Arrangements' },
+  { value: 'industrial_relations', label: 'Industrial Relations' },
+  { value: 'leave', label: 'Leave' },
+  { value: 'medical', label: 'Medical' },
+  { value: 'transport_travel', label: 'Transport & Travel' },
+  { value: 'other_benefits', label: 'Other Benefits' },
+  { value: 'leaving_service', label: 'Leaving Service' },
+  { value: 're_employment', label: 'Re-Employment' },
+  { value: 'general', label: 'General' },
+  { value: 'personnel_board_matters', label: 'Personnel Board Matters' },
+  { value: 'approving_authorities', label: 'Approving Authorities' },
+  { value: 'data_systems', label: 'Data & Systems' },
+] as const;
+
+// Content Groups for Access Control
+export const CONTENT_GROUPS = [
+  { value: 'hrl_cs', label: 'HRL Civil Service' },
+  { value: 'hrl_sb', label: 'HRL Statutory Board' },
+  { value: 'hro_cs', label: 'HR Ops Civil Service' },
+  { value: 'hro_sb', label: 'HR Ops Statutory Board' },
+] as const;
+
+// Applicable For options (audience targeting)
+export const APPLICABLE_FOR_OPTIONS = [
+  { value: 'cs_only', label: 'Civil Service Only' },
+  { value: 'cs_and_sb', label: 'Civil Service & Statutory Boards' },
+] as const;
+
+// Circular Types for Access Control
+export const CIRCULAR_TYPES = [
+  { value: 'hrl', label: 'HRL Circulars' },
+  { value: 'hr_ops', label: 'HR Operations Circulars' },
 ] as const;
 
 export const RESOURCE_CATEGORY_TYPES = [

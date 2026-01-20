@@ -9,6 +9,7 @@ export const ROLE_TIERS: Record<UserRole, number> = {
   hrl_rep_ministry: 5,
   hrl_rep_statboard: 6,
   hr_officer: 7,
+  content_editor: 8,
 };
 
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
@@ -19,6 +20,7 @@ export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   hrl_rep_ministry: 'HRL Representative (Ministry)',
   hrl_rep_statboard: 'HRL Representative (Stat Board)',
   hr_officer: 'HR Officer',
+  content_editor: 'Content Editor',
 };
 
 /**

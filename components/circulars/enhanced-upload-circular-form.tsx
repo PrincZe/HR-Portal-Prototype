@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/lib/types/database';
+import { User, PrimaryTopic } from '@/lib/types/database';
 import { circularUploadSchema, CircularUploadFormValues } from '@/lib/schemas/circular-upload';
-import { SECONDARY_TOPICS } from '@/lib/constants/topics';
+import { PRIMARY_TOPICS } from '@/lib/constants/topics';
 import { deleteFiles } from '@/lib/storage/file-utils';
+import { getAvailableTopicsForUser, canUploadCircularWithTopic } from '@/lib/access-control';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -33,6 +36,15 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
   const [selectedMainDoc, setSelectedMainDoc] = useState<File | null>(null);
   const [pendingMainDocFiles, setPendingMainDocFiles] = useState<FileList | null>(null);
   const [annexFiles, setAnnexFiles] = useState<File[]>([]);
+
+  // Determine if user is a Content Editor with topic restrictions
+  const isContentEditor = user.roles?.name === 'content_editor';
+  const assignedTopics = user.assigned_topics || [];
+
+  // Get available topics for this user (Content Editors only see their assigned topics)
+  const availableTopics = useMemo(() => {
+    return getAvailableTopicsForUser(user, [...PRIMARY_TOPICS]);
+  }, [user]);
 
   const form = useForm<CircularUploadFormValues>({
     resolver: zodResolver(circularUploadSchema),
@@ -118,6 +130,14 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
   };
 
   const onSubmit = async (values: CircularUploadFormValues) => {
+    // Validate topic access for Content Editors
+    if (isContentEditor && values.primary_topic) {
+      if (!canUploadCircularWithTopic(values.primary_topic, user)) {
+        toast.error('You are not authorized to upload circulars for this topic');
+        return;
+      }
+    }
+
     setIsUploading(true);
     const uploadedPaths: string[] = [];
 
@@ -333,6 +353,16 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Primary Topic *</FormLabel>
+                  {isContentEditor && (
+                    <Alert className="mb-2 py-2">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription className="text-sm">
+                        You can only upload circulars for your assigned topics: {assignedTopics.length > 0
+                          ? availableTopics.map(t => t.label).join(', ')
+                          : 'None assigned'}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -340,7 +370,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {SECONDARY_TOPICS.map((topic) => (
+                      {availableTopics.map((topic) => (
                         <SelectItem key={topic.value} value={topic.value}>
                           {topic.label}
                         </SelectItem>

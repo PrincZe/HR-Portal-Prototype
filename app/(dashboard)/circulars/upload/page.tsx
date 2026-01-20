@@ -24,8 +24,16 @@ export default async function UploadCircularPage() {
     redirect('/login');
   }
 
-  // Check if user has admin role (tier 1 or 2)
-  if (!user.roles || user.roles.tier > 2) {
+  // Check if user has permission to upload (admin or content_editor)
+  const isAdmin = user.roles && user.roles.tier <= 2;
+  const isContentEditor = user.roles?.name === 'content_editor';
+
+  if (!isAdmin && !isContentEditor) {
+    redirect('/unauthorized');
+  }
+
+  // Content editors must have at least one assigned topic
+  if (isContentEditor && (!user.assigned_topics || user.assigned_topics.length === 0)) {
     redirect('/unauthorized');
   }
 

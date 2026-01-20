@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/lib/types/database';
+import { User, ApplicableFor, CircularType } from '@/lib/types/database';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,14 +12,17 @@ import { CircularCard } from './circular-card';
 import { CircularFilters } from './circular-filters';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { filterCircularsByAccess } from '@/lib/access-control';
 
 interface Circular {
   id: string;
   title: string;
   circular_number: string;
   type: 'hrl' | 'hrops' | 'psd' | 'psd_minute';
+  circular_type?: CircularType | null;
   status?: 'valid' | 'obsolete' | null;
   primary_topic?: string | null;
+  applicable_for?: ApplicableFor | null;
   file_path: string;
   file_name: string;
   file_size: number | null;
@@ -76,7 +79,8 @@ export function CircularsClient({ user }: CircularsClientProps) {
   };
 
   const filterCirculars = () => {
-    let filtered = [...circulars];
+    // First apply access control filtering (backup to RLS)
+    let filtered = filterCircularsByAccess(circulars, user);
 
     // Filter by search query
     if (searchQuery) {

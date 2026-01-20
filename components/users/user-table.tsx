@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, CheckCircle, XCircle, Edit, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CONTENT_GROUPS } from '@/lib/constants/topics';
 
 interface UserTableProps {
   users: User[];
@@ -65,6 +66,30 @@ export function UserTable({
     return <Badge variant="secondary">HR Officer</Badge>;
   };
 
+  const getContentGroupLabel = (contentGroup: string | null) => {
+    if (!contentGroup) return null;
+    const group = CONTENT_GROUPS.find(g => g.value === contentGroup);
+    return group?.label || contentGroup;
+  };
+
+  const getAccessInfo = (user: User) => {
+    if (user.content_group) {
+      return (
+        <Badge variant="outline" className="text-xs">
+          {getContentGroupLabel(user.content_group)}
+        </Badge>
+      );
+    }
+    if (user.assigned_topics && user.assigned_topics.length > 0) {
+      return (
+        <Badge variant="outline" className="text-xs">
+          {user.assigned_topics.length} topic{user.assigned_topics.length !== 1 ? 's' : ''}
+        </Badge>
+      );
+    }
+    return <span className="text-muted-foreground text-xs">-</span>;
+  };
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -98,6 +123,7 @@ export function UserTable({
           <TableRow>
             <TableHead>User</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Access</TableHead>
             <TableHead>Agency</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Login</TableHead>
@@ -132,6 +158,7 @@ export function UserTable({
                   </span>
                 </div>
               </TableCell>
+              <TableCell>{getAccessInfo(user)}</TableCell>
               <TableCell>{user.agency || '-'}</TableCell>
               <TableCell>{getStatusBadge(user.status)}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
