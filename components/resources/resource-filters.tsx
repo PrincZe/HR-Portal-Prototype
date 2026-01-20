@@ -4,13 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { PRIMARY_TOPICS } from '@/lib/constants/topics';
 
 interface ResourceFiltersProps {
   selectedTopic: string;
   onTopicChange: (topic: string) => void;
   selectedCategoryType: string;
   onCategoryTypeChange: (type: string) => void;
-  availableTopics: string[];
   availableCategoryTypes: string[];
 }
 
@@ -19,7 +19,6 @@ export function ResourceFilters({
   onTopicChange,
   selectedCategoryType,
   onCategoryTypeChange,
-  availableTopics,
   availableCategoryTypes,
 }: ResourceFiltersProps) {
   const handleClearAll = () => {
@@ -53,11 +52,11 @@ export function ResourceFilters({
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px]">
             <SelectItem value="all">All Topics</SelectItem>
-            {availableTopics.map((topic) => (
-              <SelectItem key={topic} value={topic}>
-                {topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            {PRIMARY_TOPICS.map((topic) => (
+              <SelectItem key={topic.value} value={topic.value}>
+                {topic.label}
               </SelectItem>
             ))}
           </SelectContent>

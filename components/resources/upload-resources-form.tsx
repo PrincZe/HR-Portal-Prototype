@@ -18,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X } from 'lucide-react';
-import { SECONDARY_TOPICS, RESOURCE_CATEGORY_TYPES } from '@/lib/constants/topics';
+import { PRIMARY_TOPICS, RESOURCE_CATEGORY_TYPES } from '@/lib/constants/topics';
 import { TagInput } from '@/components/ui/tag-input';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -326,7 +326,7 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="max-h-[300px]">
-                      {SECONDARY_TOPICS.map((topic) => (
+                      {PRIMARY_TOPICS.map((topic) => (
                         <SelectItem key={topic.value} value={topic.value}>
                           {topic.label}
                         </SelectItem>

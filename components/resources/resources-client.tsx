@@ -202,8 +202,7 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
     }
   };
 
-  // Get available topics and category types
-  const availableTopics = Array.from(new Set(resources.map(r => r.topic))).sort();
+  // Get available category types from existing resources
   const availableCategoryTypes = Array.from(
     new Set(resources.map(r => r.category_type).filter((type): type is string => Boolean(type)))
   ).sort();
@@ -220,7 +219,6 @@ export function ResourcesClient({ user }: ResourcesClientProps) {
             onTopicChange={setSelectedTopic}
             selectedCategoryType={selectedCategoryType}
             onCategoryTypeChange={setSelectedCategoryType}
-            availableTopics={availableTopics}
             availableCategoryTypes={availableCategoryTypes}
           />
         </Card>
