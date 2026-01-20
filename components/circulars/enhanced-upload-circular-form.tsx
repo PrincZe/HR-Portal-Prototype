@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
@@ -567,59 +566,6 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 </FormItem>
               )}
             />
-
-            {/* Access Control */}
-            <div className="border-t pt-4 space-y-4">
-              <h3 className="text-sm font-medium">Access Control (Optional)</h3>
-
-              <FormField
-                control={form.control}
-                name="min_role_tier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Minimum Role Tier (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="All users can access" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">System Admin</SelectItem>
-                        <SelectItem value="2">Portal Admin</SelectItem>
-                        <SelectItem value="3">HRL Ministry</SelectItem>
-                        <SelectItem value="4">HRL Stat Board</SelectItem>
-                        <SelectItem value="5">HRL Rep Ministry</SelectItem>
-                        <SelectItem value="6">HRL Rep</SelectItem>
-                        <SelectItem value="7">All Users</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Only users with this role tier or higher can access
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ministry_only"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Ministry Only</FormLabel>
-                      <FormDescription>
-                        Only users from ministries can access this circular
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-4 pt-6">

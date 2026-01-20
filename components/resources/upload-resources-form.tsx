@@ -10,10 +10,8 @@ import { User } from '@/lib/types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
@@ -236,16 +234,6 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
       setIsUploading(false);
     }
   };
-
-  const roleTiers = [
-    { value: '1', label: 'System Admin' },
-    { value: '2', label: 'Portal Admin' },
-    { value: '3', label: 'HRL Ministry' },
-    { value: '4', label: 'HRL Stat Board' },
-    { value: '5', label: 'HRL Rep Ministry' },
-    { value: '6', label: 'HRL Rep' },
-    { value: '7', label: 'All Users' },
-  ];
 
   return (
     <Card>
@@ -479,54 +467,6 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                 </div>
               </div>
             )}
-
-            {/* Access Control */}
-            <div className="border-t pt-6">
-              <h3 className="text-sm font-medium mb-4">Access Control (applies to all files)</h3>
-
-              <FormField
-                control={form.control}
-                name="min_role_tier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Minimum Role Tier (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select minimum role (leave empty for all users)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {roleTiers.map((tier) => (
-                          <SelectItem key={tier.value} value={tier.value}>
-                            {tier.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ministry_only"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Ministry Only</FormLabel>
-                      <FormDescription>
-                        Only users from ministries can access these resources
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
 
             {/* Overall Progress */}
             {isUploading && (
