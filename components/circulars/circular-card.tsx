@@ -114,14 +114,12 @@ export function CircularCard({ circular, onView, onDownload }: CircularCardProps
         </div>
       </CardContent>
 
-      <CardFooter className="flex gap-2">
-        <Button onClick={onView} variant="default" className="flex-1">
-          <Eye className="mr-2 h-4 w-4" />
-          View
+      <CardFooter className="flex justify-end gap-1">
+        <Button onClick={onView} variant="default" size="icon" title="View">
+          <Eye className="h-4 w-4" />
         </Button>
-        <Button onClick={onDownload} variant="outline" className="flex-1">
-          <Download className="mr-2 h-4 w-4" />
-          Download
+        <Button onClick={onDownload} variant="outline" size="icon" title="Download">
+          <Download className="h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
