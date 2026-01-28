@@ -225,7 +225,7 @@ export function ResourceCard({ resource, viewMode, onView, onDownload, onDelete 
         <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
         {renderTags(resource.tags)}
         {resource.description && (
-          <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
+          <CardDescription className="line-clamp-2 text-gray-600">{resource.description}</CardDescription>
         )}
       </CardHeader>
 

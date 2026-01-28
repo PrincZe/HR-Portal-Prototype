@@ -16,6 +16,7 @@ interface Circular {
   file_name: string;
   file_size: number | null;
   description: string | null;
+  ai_summary?: string | null;
   min_role_tier: number | null;
   ministry_only: boolean;
   uploaded_at: string;
@@ -86,8 +87,10 @@ export function CircularCard({ circular, onView, onDownload }: CircularCardProps
           <span className="text-xs text-muted-foreground">{circular.circular_number}</span>
         </div>
         <CardTitle className="text-lg line-clamp-2">{circular.title}</CardTitle>
-        {circular.description && (
-          <CardDescription className="line-clamp-2">{circular.description}</CardDescription>
+        {(circular.ai_summary || circular.description) && (
+          <CardDescription className="line-clamp-2 text-gray-600">
+            {circular.ai_summary || circular.description}
+          </CardDescription>
         )}
       </CardHeader>
 

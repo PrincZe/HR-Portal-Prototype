@@ -8,7 +8,7 @@ import { AnnexesSidebar } from '@/components/circulars/annexes-sidebar';
 import { CircularDetailClient } from '@/components/circulars/circular-detail-client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Edit } from 'lucide-react';
+import { ArrowLeft, FileText, Edit, Sparkles } from 'lucide-react';
 import { isAdmin } from '@/lib/roles';
 
 interface CircularDetailPageProps {
@@ -147,6 +147,23 @@ export default async function CircularDetailPage({ params }: CircularDetailPageP
                 <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
                   Topic: {circular.primary_topic.replace(/_/g, ' ')}
                 </span>
+              </div>
+            )}
+
+            {/* AI Summary - Quick Overview */}
+            {circular.ai_summary && (
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100 rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-4 w-4 text-[#17A2B8]" />
+                    <h3 className="text-sm font-semibold text-[#17A2B8] uppercase tracking-wide">
+                      Quick Overview
+                    </h3>
+                  </div>
+                  <p className="text-gray-700 text-base leading-relaxed">
+                    {circular.ai_summary}
+                  </p>
+                </div>
               </div>
             )}
 

@@ -11,7 +11,7 @@ import { PRIMARY_TOPICS } from '@/lib/constants/topics';
 import { deleteFiles } from '@/lib/storage/file-utils';
 import { getAvailableTopicsForUser, canUploadCircularWithTopic } from '@/lib/access-control';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, RefreshCw, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -23,18 +23,37 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X, Plus } from 'lucide-react';
+import { extractTextFromPDF } from '@/lib/pdf/extract-text';
+import { generateAISummary } from '@/lib/ai/generate-summary';
 
 interface EnhancedUploadCircularFormProps {
   user: User;
 }
 
+// File size limits
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const LARGE_FILE_WARNING_MB = 5;
+const LARGE_FILE_WARNING_BYTES = LARGE_FILE_WARNING_MB * 1024 * 1024;
+
+// Upload progress states
+type UploadProgressState = 'idle' | 'validating' | 'uploading-document' | 'uploading-annexes' | 'saving' | 'complete';
+
 export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormProps) {
   const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressState>('idle');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedMainDoc, setSelectedMainDoc] = useState<File | null>(null);
   const [pendingMainDocFiles, setPendingMainDocFiles] = useState<FileList | null>(null);
   const [annexFiles, setAnnexFiles] = useState<File[]>([]);
+
+  // AI Summary state
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summaryStatus, setSummaryStatus] = useState<'idle' | 'extracting' | 'generating' | 'success' | 'error'>('idle');
+  const [extractedText, setExtractedText] = useState<string>('');
+  const [aiSummary, setAiSummary] = useState<string>('');
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   // Determine if user is a Content Editor with topic restrictions
   const isContentEditor = user.roles?.name === 'content_editor';
@@ -110,10 +129,148 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
     }
   };
 
-  const handleConfirmUpload = () => {
+  const handleConfirmUpload = async () => {
     if (pendingMainDocFiles) {
       form.setValue('main_document', pendingMainDocFiles);
       setPendingMainDocFiles(null);
+
+      // Trigger AI summary generation for PDF files
+      const file = pendingMainDocFiles[0];
+      if (file && file.type === 'application/pdf') {
+        await generateSummaryFromFile(file);
+      }
+    }
+  };
+
+  const generateSummaryFromFile = async (file: File) => {
+    setIsGeneratingSummary(true);
+    setSummaryStatus('extracting');
+    setSummaryError(null);
+
+    try {
+      // File size validation
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setSummaryError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum size is ${MAX_FILE_SIZE_MB} MB. Text extraction skipped.`);
+        setSummaryStatus('error');
+        toast.warning(`File exceeds ${MAX_FILE_SIZE_MB} MB limit. You can add a summary manually.`);
+        return;
+      }
+
+      // Large file warning
+      if (file.size > LARGE_FILE_WARNING_BYTES) {
+        toast.info(`Processing large file (${(file.size / 1024 / 1024).toFixed(1)} MB). This may take a moment...`);
+      }
+
+      // Step 1: Extract text from PDF
+      const extractionResult = await extractTextFromPDF(file);
+
+      if (!extractionResult.success || !extractionResult.text) {
+        // Provide more specific error messages
+        const errorMessage = extractionResult.error || '';
+        let userMessage: string;
+
+        if (errorMessage.toLowerCase().includes('encrypted') || errorMessage.toLowerCase().includes('password')) {
+          userMessage = 'This PDF is password-protected. Please upload an unprotected version or add a summary manually.';
+        } else if (errorMessage.toLowerCase().includes('corrupt') || errorMessage.toLowerCase().includes('invalid')) {
+          userMessage = 'This PDF appears to be corrupted or invalid. Please try re-saving it or upload a different file.';
+        } else if (!extractionResult.text || extractionResult.text.trim().length < 50) {
+          userMessage = 'Could not extract text from PDF. It may be scanned/image-based. Consider using OCR software first, or add a summary manually.';
+        } else {
+          userMessage = 'Could not extract text from PDF. You can add a summary manually.';
+        }
+
+        setSummaryError(userMessage);
+        setSummaryStatus('error');
+        toast.warning(userMessage);
+        return;
+      }
+
+      // Check if extracted text is too short (likely scanned/image PDF)
+      if (extractionResult.text.trim().length < 100) {
+        setSummaryError('Very little text was extracted. The PDF may be scanned/image-based. You can add a summary manually.');
+        setSummaryStatus('error');
+        toast.warning('PDF appears to be image-based. Please add a summary manually.');
+        return;
+      }
+
+      setExtractedText(extractionResult.text);
+      setSummaryStatus('generating');
+
+      // Step 2: Generate AI summary
+      const summaryResult = await generateAISummary(extractionResult.text);
+
+      if (!summaryResult.success || !summaryResult.summary) {
+        // Provide specific error messages for AI failures
+        const errorMessage = summaryResult.error || '';
+        let userMessage: string;
+
+        if (errorMessage.toLowerCase().includes('api key') || errorMessage.toLowerCase().includes('unauthorized')) {
+          userMessage = 'AI service is not configured. Please contact support or add a summary manually.';
+        } else if (errorMessage.toLowerCase().includes('rate limit') || errorMessage.toLowerCase().includes('too many')) {
+          userMessage = 'AI service is temporarily busy. Please try again in a few moments or add a summary manually.';
+        } else if (errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('network')) {
+          userMessage = 'Could not reach AI service. Please check your connection and try again.';
+        } else {
+          userMessage = 'Could not generate AI summary. You can add one manually.';
+        }
+
+        setSummaryError(userMessage);
+        setSummaryStatus('error');
+        toast.warning(userMessage);
+        return;
+      }
+
+      setAiSummary(summaryResult.summary);
+      setSummaryStatus('success');
+      toast.success('AI summary generated successfully!');
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Handle specific error types
+      if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('heap')) {
+        setSummaryError('PDF is too complex to process. Please try a smaller file or add a summary manually.');
+      } else {
+        setSummaryError('An unexpected error occurred while generating the summary. Please try again or add one manually.');
+      }
+
+      setSummaryStatus('error');
+      toast.error('Failed to generate AI summary');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleRegenerateSummary = async () => {
+    if (!extractedText) {
+      toast.error('No extracted text available. Please re-upload the PDF.');
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+    setSummaryStatus('generating');
+    setSummaryError(null);
+
+    try {
+      const summaryResult = await generateAISummary(extractedText);
+
+      if (!summaryResult.success || !summaryResult.summary) {
+        setSummaryError(summaryResult.error || 'Could not regenerate AI summary.');
+        setSummaryStatus('error');
+        toast.error('Failed to regenerate summary');
+        return;
+      }
+
+      setAiSummary(summaryResult.summary);
+      setSummaryStatus('success');
+      toast.success('AI summary regenerated!');
+    } catch (error) {
+      console.error('Error regenerating summary:', error);
+      setSummaryError('An unexpected error occurred.');
+      setSummaryStatus('error');
+      toast.error('Failed to regenerate AI summary');
+    } finally {
+      setIsGeneratingSummary(false);
     }
   };
 
@@ -138,12 +295,18 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
     }
 
     setIsUploading(true);
+    setUploadProgress('validating');
     const uploadedPaths: string[] = [];
 
     try {
       const supabase = createClient();
       const mainFile = values.main_document[0];
       const year = new Date().getFullYear();
+
+      // Validate file size
+      if (mainFile.size > MAX_FILE_SIZE_BYTES) {
+        throw new Error(`File is too large (${(mainFile.size / 1024 / 1024).toFixed(1)} MB). Maximum size is ${MAX_FILE_SIZE_MB} MB.`);
+      }
 
       // Check if circular number already exists
       const { data: existing } = await supabase
@@ -157,6 +320,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
       }
 
       // Generate file path for main document
+      setUploadProgress('uploading-document');
       const mainFileExt = mainFile.name.split('.').pop();
       const mainFileName = `${values.circular_number.replace(/\//g, '-')}.${mainFileExt}`;
       const mainFilePath = `${values.type}/${year}/${values.circular_number}/${mainFileName}`;
@@ -173,8 +337,17 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
       uploadedPaths.push(mainFilePath);
 
       // Upload annex documents
+      if (annexFiles.length > 0) {
+        setUploadProgress('uploading-annexes');
+      }
       const annexPaths: string[] = [];
       for (const annexFile of annexFiles) {
+        // Validate annex file size
+        if (annexFile.size > MAX_FILE_SIZE_BYTES) {
+          await deleteFiles('circulars', uploadedPaths);
+          throw new Error(`Attachment "${annexFile.name}" is too large (${(annexFile.size / 1024 / 1024).toFixed(1)} MB). Maximum size is ${MAX_FILE_SIZE_MB} MB.`);
+        }
+
         const annexExt = annexFile.name.split('.').pop();
         const annexFileName = `${Date.now()}_${annexFile.name}`;
         const annexPath = `${values.type}/${year}/${values.circular_number}/annexes/${annexFileName}`;
@@ -195,6 +368,9 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         annexPaths.push(annexPath);
         uploadedPaths.push(annexPath);
       }
+
+      // Save circular record
+      setUploadProgress('saving');
 
       // Insert circular record
       const { error: insertError } = await supabase.from('circulars').insert({
@@ -217,6 +393,8 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         min_role_tier: values.min_role_tier ? parseInt(values.min_role_tier) : null,
         ministry_only: values.ministry_only,
         uploaded_by: user.id,
+        ai_summary: aiSummary || null,
+        extracted_content: extractedText || null,
       });
 
       if (insertError) {
@@ -237,14 +415,36 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         },
       });
 
-      toast.success('Circular uploaded successfully');
+      setUploadProgress('complete');
+
+      // Show warning if no AI summary was generated
+      if (!aiSummary || aiSummary.trim().length === 0) {
+        toast.warning('Circular uploaded without AI summary. Search functionality may be limited for this circular.', {
+          duration: 5000,
+        });
+      } else {
+        toast.success('Circular uploaded successfully!');
+      }
+
       router.push('/circulars');
       router.refresh();
     } catch (error: any) {
       console.error('Error uploading circular:', error);
-      toast.error(error.message || 'Failed to upload circular');
+
+      // Provide more specific error messages
+      let errorMessage = error.message || 'Failed to upload circular';
+      if (error.message?.includes('storage')) {
+        errorMessage = 'Failed to upload file to storage. Please check your connection and try again.';
+      } else if (error.message?.includes('permission') || error.message?.includes('policy')) {
+        errorMessage = 'You do not have permission to upload this circular.';
+      } else if (error.message?.includes('duplicate') || error.message?.includes('already exists')) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
+      setUploadProgress('idle');
     }
   };
 
@@ -567,17 +767,131 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               )}
             />
 
+            {/* AI-Generated Summary */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <FormLabel className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#17A2B8]" />
+                    AI-Generated Summary
+                  </FormLabel>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Auto-generated from PDF content, editable
+                  </p>
+                </div>
+                {extractedText && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerateSummary}
+                    disabled={isGeneratingSummary}
+                    className="text-xs"
+                  >
+                    {isGeneratingSummary ? (
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                    )}
+                    Regenerate
+                  </Button>
+                )}
+              </div>
+
+              {/* Status indicators */}
+              {summaryStatus === 'extracting' && (
+                <Alert className="py-2 bg-blue-50 border-blue-200">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  <AlertDescription className="text-sm text-blue-700">
+                    Extracting text from PDF...
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {summaryStatus === 'generating' && (
+                <Alert className="py-2 bg-blue-50 border-blue-200">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  <AlertDescription className="text-sm text-blue-700">
+                    Generating AI summary...
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {summaryStatus === 'success' && !isGeneratingSummary && (
+                <Alert className="py-2 bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-sm text-green-700">
+                    AI summary generated successfully!
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {summaryStatus === 'error' && summaryError && (
+                <Alert className="py-2 bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-700">
+                    {summaryError} You can add a summary manually below.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Textarea
+                placeholder={
+                  isGeneratingSummary
+                    ? 'Generating summary...'
+                    : 'AI summary will appear here after uploading a PDF. You can also write one manually.'
+                }
+                className="resize-none"
+                rows={6}
+                value={aiSummary}
+                onChange={(e) => setAiSummary(e.target.value)}
+                disabled={isGeneratingSummary}
+              />
+              <p className="text-xs text-muted-foreground">
+                This summary helps users find this circular in search. It was auto-generated from the PDF content.
+              </p>
+            </div>
+
+            {/* Warning if no AI summary */}
+            {selectedMainDoc && !aiSummary && summaryStatus !== 'extracting' && summaryStatus !== 'generating' && (
+              <Alert className="py-3 bg-amber-50 border-amber-200">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-sm text-amber-700">
+                  <strong>No AI summary available.</strong> This circular will have limited search visibility.
+                  {summaryStatus === 'error' ? (
+                    <> The AI summary generation failed. You can add a summary manually above.</>
+                  ) : selectedMainDoc.type !== 'application/pdf' ? (
+                    <> AI summaries are only auto-generated for PDF files. You can add one manually above.</>
+                  ) : (
+                    <> Click "Regenerate" above or add a summary manually to improve searchability.</>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Action Buttons */}
             <div className="flex gap-4 pt-6">
               <Button
                 type="submit"
-                disabled={isUploading}
+                disabled={isUploading || isGeneratingSummary}
                 className="bg-[#17A2B8] hover:bg-[#138496]"
               >
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    {uploadProgress === 'validating' && 'Validating...'}
+                    {uploadProgress === 'uploading-document' && 'Uploading document...'}
+                    {uploadProgress === 'uploading-annexes' && 'Uploading attachments...'}
+                    {uploadProgress === 'saving' && 'Saving circular...'}
+                    {uploadProgress === 'complete' && 'Complete!'}
+                    {uploadProgress === 'idle' && 'Uploading...'}
+                  </>
+                ) : isGeneratingSummary ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {summaryStatus === 'extracting' && 'Extracting text...'}
+                    {summaryStatus === 'generating' && 'Generating summary...'}
+                    {summaryStatus !== 'extracting' && summaryStatus !== 'generating' && 'Processing...'}
                   </>
                 ) : (
                   <>
@@ -590,7 +904,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                disabled={isUploading}
+                disabled={isUploading || isGeneratingSummary}
               >
                 Cancel
               </Button>

@@ -90,6 +90,8 @@ export interface Circular {
   uploaded_by: string;
   uploaded_at: string;
   updated_at: string;
+  ai_summary: string | null;
+  extracted_content: string | null;
 }
 
 export interface Resource {
