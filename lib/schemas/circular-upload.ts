@@ -9,7 +9,7 @@ const ACCEPTED_FILE_TYPES = [
 
 export const circularUploadSchema = z.object({
   // 1. Applicable For (Required)
-  applicable_for: z.enum(['civil_service_and_sb', 'civil_service_only'], {
+  applicable_for: z.enum(['cs_and_sb', 'cs_only'], {
     message: 'Please select who this circular applies to',
   }),
 
