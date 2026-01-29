@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse';
+import { extractText as unpdfExtractText, getDocumentProxy } from 'unpdf';
 
 export interface ExtractionResult {
   text: string;
@@ -8,28 +8,29 @@ export interface ExtractionResult {
 }
 
 /**
- * Extracts text content from a PDF file
- * @param file - The PDF file to extract text from (File or Buffer)
+ * Extracts text content from a PDF file using unpdf (serverless-compatible)
+ * @param file - The PDF file to extract text from (File, Buffer, or ArrayBuffer)
  * @returns Promise<ExtractionResult> - The extracted text or error information
  */
 export async function extractTextFromPDF(
-  file: File | Buffer
+  file: File | Buffer | ArrayBuffer
 ): Promise<ExtractionResult> {
-  let parser: PDFParse | null = null;
-
   try {
-    let data: Uint8Array;
+    let data: ArrayBuffer;
 
-    // Convert File to Uint8Array if needed
+    // Convert input to ArrayBuffer
     if (file instanceof File) {
-      const arrayBuffer = await file.arrayBuffer();
-      data = new Uint8Array(arrayBuffer);
+      data = await file.arrayBuffer();
+    } else if (Buffer.isBuffer(file)) {
+      // Create a new ArrayBuffer from Buffer
+      const uint8Array = new Uint8Array(file);
+      data = uint8Array.buffer as ArrayBuffer;
     } else {
-      data = new Uint8Array(file);
+      data = file;
     }
 
     // Validate data is not empty
-    if (data.length === 0) {
+    if (data.byteLength === 0) {
       return {
         text: '',
         success: false,
@@ -37,34 +38,37 @@ export async function extractTextFromPDF(
       };
     }
 
-    // Create parser and extract text
-    parser = new PDFParse({ data });
-    const textResult = await parser.getText();
+    // Use unpdf to extract text
+    const pdf = await getDocumentProxy(new Uint8Array(data));
+    const pageCount = pdf.numPages;
+
+    // Extract text from all pages
+    const { text } = await unpdfExtractText(pdf, { mergePages: true });
 
     // Check if text was extracted
-    if (!textResult.text || textResult.text.trim().length === 0) {
+    if (!text || text.trim().length === 0) {
       return {
         text: '',
         success: false,
-        pageCount: textResult.pages?.length,
+        pageCount,
         error: 'No text content found. The PDF may be scanned/image-based.',
       };
     }
 
     // Clean up the extracted text
-    const cleanedText = cleanExtractedText(textResult.text);
+    const cleanedText = cleanExtractedText(text);
 
     return {
       text: cleanedText,
       success: true,
-      pageCount: textResult.pages?.length,
+      pageCount,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
     // Provide more specific error messages for common issues
     let userFriendlyError = errorMessage;
-    if (errorMessage.includes('Invalid PDF')) {
+    if (errorMessage.includes('Invalid PDF') || errorMessage.includes('invalid')) {
       userFriendlyError = 'Invalid or corrupted PDF file';
     } else if (errorMessage.includes('password')) {
       userFriendlyError = 'PDF is password protected';
@@ -79,11 +83,6 @@ export async function extractTextFromPDF(
       success: false,
       error: userFriendlyError,
     };
-  } finally {
-    // Clean up parser resources
-    if (parser) {
-      await parser.destroy().catch(() => {});
-    }
   }
 }
 
@@ -111,7 +110,7 @@ function cleanExtractedText(text: string): string {
  * Simple wrapper that returns just the text string
  * Returns empty string on failure (for backward compatibility)
  */
-export async function extractText(file: File | Buffer): Promise<string> {
+export async function extractText(file: File | Buffer | ArrayBuffer): Promise<string> {
   const result = await extractTextFromPDF(file);
   return result.text;
 }
