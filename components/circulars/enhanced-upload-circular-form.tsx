@@ -24,6 +24,7 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X, Plus } from 'lucide-react';
 import { SECONDARY_TOPICS } from '@/lib/constants/topics';
+import { TagInput } from '@/components/ui/tag-input';
 
 interface EnhancedUploadCircularFormProps {
   user: User;
@@ -878,91 +879,44 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                 </p>
               </div>
 
-              {/* Selected Tags Display */}
-              {selectedTags.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
-                  {selectedTags.map((tagValue) => {
+              {/* Quick-add suggested tags */}
+              {suggestedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {suggestedTags.map((tagValue) => {
                     const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
-                    const isSuggested = suggestedTags.includes(tagValue);
+                    const isSelected = selectedTags.includes(tagValue);
                     return (
-                      <span
+                      <button
                         key={tagValue}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          isSuggested
-                            ? 'bg-[#17A2B8]/10 text-[#17A2B8] border border-[#17A2B8]/30'
-                            : 'bg-gray-200 text-gray-700'
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedTags(prev => prev.filter(t => t !== tagValue));
+                          } else {
+                            setSelectedTags(prev => [...prev, tagValue]);
+                          }
+                        }}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                          isSelected
+                            ? 'bg-[#17A2B8] text-white'
+                            : 'bg-[#17A2B8]/10 text-[#17A2B8] border border-[#17A2B8]/30 hover:bg-[#17A2B8]/20'
                         }`}
                       >
+                        {isSelected && <span className="mr-0.5">✓</span>}
                         {tagInfo?.label || tagValue}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTags(prev => prev.filter(t => t !== tagValue))}
-                          className="ml-0.5 hover:text-red-600 transition-colors"
-                          aria-label={`Remove ${tagInfo?.label || tagValue} tag`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
+                      </button>
                     );
                   })}
                 </div>
               )}
 
-              {/* Add Tag Dropdown */}
-              <div className="flex gap-2">
-                <Select
-                  value={tagInputValue}
-                  onValueChange={(value) => {
-                    if (value && !selectedTags.includes(value)) {
-                      setSelectedTags(prev => [...prev, value]);
-                    }
-                    setTagInputValue('');
-                  }}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={`Add from ${SECONDARY_TOPICS.length - selectedTags.length} available tags...`} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {SECONDARY_TOPICS
-                      .filter(topic => !selectedTags.includes(topic.value))
-                      .map((topic) => (
-                        <SelectItem key={topic.value} value={topic.value}>
-                          {topic.label}
-                          {suggestedTags.includes(topic.value) && (
-                            <span className="ml-2 text-xs text-[#17A2B8]">(suggested)</span>
-                          )}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Select additional tags from {SECONDARY_TOPICS.length} HR categories to improve searchability.
-              </p>
-
-              {/* Quick-add suggested tags if not all selected */}
-              {suggestedTags.length > 0 && suggestedTags.some(tag => !selectedTags.includes(tag)) && (
-                <div className="text-xs text-muted-foreground">
-                  <span>AI suggested: </span>
-                  {suggestedTags
-                    .filter(tag => !selectedTags.includes(tag))
-                    .map((tagValue, index, arr) => {
-                      const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
-                      return (
-                        <span key={tagValue}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedTags(prev => [...prev, tagValue])}
-                            className="text-[#17A2B8] hover:underline"
-                          >
-                            + {tagInfo?.label || tagValue}
-                          </button>
-                          {index < arr.length - 1 && ', '}
-                        </span>
-                      );
-                    })}
-                </div>
-              )}
+              {/* Tag Input - type to add */}
+              <TagInput
+                value={selectedTags}
+                onChange={setSelectedTags}
+                placeholder="Type a tag and press Enter..."
+                disabled={isGeneratingSummary}
+              />
             </div>
 
             {/* Warning if no AI summary */}
