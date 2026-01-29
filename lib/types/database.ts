@@ -87,6 +87,7 @@ export interface Circular {
   ministry_only: boolean;
   applicable_for: ApplicableFor | null;
   primary_topic: PrimaryTopic | null;
+  tags: string[] | null;
   uploaded_by: string;
   uploaded_at: string;
   updated_at: string;

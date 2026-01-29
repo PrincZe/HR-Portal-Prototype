@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createClient } from '@/lib/supabase/client';
 import { User, PrimaryTopic } from '@/lib/types/database';
-import { PRIMARY_TOPICS } from '@/lib/constants/topics';
+import { PRIMARY_TOPICS, SECONDARY_TOPICS } from '@/lib/constants/topics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { Loader2, Save, X, Info, Sparkles, RefreshCw, CheckCircle2, AlertCircle 
 import Link from 'next/link';
 import { getAvailableTopicsForUser, canUploadCircularWithTopic } from '@/lib/access-control';
 import { extractTextFromPDF } from '@/lib/pdf/extract-text';
-import { generateAISummary } from '@/lib/ai/generate-summary';
+import { generateAISummaryWithTags } from '@/lib/ai/generate-summary';
 
 const editCircularSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must not exceed 255 characters'),
@@ -57,6 +57,11 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenerateStatus, setRegenerateStatus] = useState<'idle' | 'downloading' | 'extracting' | 'generating' | 'success' | 'error'>('idle');
   const [regenerateError, setRegenerateError] = useState<string | null>(null);
+
+  // Tags state
+  const [selectedTags, setSelectedTags] = useState<string[]>(circular.tags || []);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [tagInputValue, setTagInputValue] = useState<string>('');
 
   // Determine if user is a Content Editor with topic restrictions
   const isContentEditor = user.roles?.name === 'content_editor';
@@ -108,20 +113,28 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
 
       setRegenerateStatus('generating');
 
-      // Step 3: Generate AI summary
-      const summaryResult = await generateAISummary(extractionResult.text);
+      // Step 3: Generate AI summary and tags
+      const result = await generateAISummaryWithTags(extractionResult.text);
 
-      if (!summaryResult.success || !summaryResult.summary) {
-        setRegenerateError(summaryResult.error || 'Could not generate AI summary');
+      if (!result.success || !result.summary) {
+        setRegenerateError(result.error || 'Could not generate AI summary');
         setRegenerateStatus('error');
         toast.warning('Could not generate AI summary. You can edit it manually.');
         return;
       }
 
-      // Step 4: Update the summary field
-      setAiSummary(summaryResult.summary);
+      // Step 4: Update the summary and tags fields
+      setAiSummary(result.summary);
+      if (result.suggestedTags.length > 0) {
+        setSuggestedTags(result.suggestedTags);
+        // Merge new suggestions with existing tags
+        setSelectedTags(prev => {
+          const newTags = result.suggestedTags.filter(tag => !prev.includes(tag));
+          return [...prev, ...newTags];
+        });
+      }
       setRegenerateStatus('success');
-      toast.success('AI summary regenerated successfully!');
+      toast.success('AI summary and tags regenerated successfully!');
     } catch (error) {
       console.error('Error regenerating summary:', error);
       setRegenerateError('An unexpected error occurred');
@@ -168,6 +181,7 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
           issue_date: values.issue_date,
           primary_topic: values.primary_topic,
           secondary_topic: null,
+          tags: selectedTags.length > 0 ? selectedTags : null,
           status: values.status,
           description: values.description || null,
           applicable_for: values.applicable_for,
@@ -437,6 +451,105 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
               <p className="text-xs text-muted-foreground">
                 This summary helps users find this circular in search.
               </p>
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <div>
+                <FormLabel className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#17A2B8]" />
+                  Tags
+                  {suggestedTags.length > 0 && (
+                    <span className="text-xs font-normal text-muted-foreground">(AI-suggested available)</span>
+                  )}
+                </FormLabel>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Tags help categorize and search for this circular.
+                </p>
+              </div>
+
+              {/* Selected Tags Display */}
+              {selectedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
+                  {selectedTags.map((tagValue) => {
+                    const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
+                    const isSuggested = suggestedTags.includes(tagValue);
+                    return (
+                      <span
+                        key={tagValue}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                          isSuggested
+                            ? 'bg-[#17A2B8]/10 text-[#17A2B8] border border-[#17A2B8]/30'
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {tagInfo?.label || tagValue}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTags(prev => prev.filter(t => t !== tagValue))}
+                          className="ml-0.5 hover:text-red-600 transition-colors"
+                          aria-label={`Remove ${tagInfo?.label || tagValue} tag`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add Tag Dropdown */}
+              <div className="flex gap-2">
+                <Select
+                  value={tagInputValue}
+                  onValueChange={(value) => {
+                    if (value && !selectedTags.includes(value)) {
+                      setSelectedTags(prev => [...prev, value]);
+                    }
+                    setTagInputValue('');
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Add a tag..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECONDARY_TOPICS
+                      .filter(topic => !selectedTags.includes(topic.value))
+                      .map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.label}
+                          {suggestedTags.includes(topic.value) && (
+                            <span className="ml-2 text-xs text-[#17A2B8]">(suggested)</span>
+                          )}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick-add suggested tags if not all selected */}
+              {suggestedTags.length > 0 && suggestedTags.some(tag => !selectedTags.includes(tag)) && (
+                <div className="text-xs text-muted-foreground">
+                  <span>AI suggested: </span>
+                  {suggestedTags
+                    .filter(tag => !selectedTags.includes(tag))
+                    .map((tagValue, index, arr) => {
+                      const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
+                      return (
+                        <span key={tagValue}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTags(prev => [...prev, tagValue])}
+                            className="text-[#17A2B8] hover:underline"
+                          >
+                            + {tagInfo?.label || tagValue}
+                          </button>
+                          {index < arr.length - 1 && ', '}
+                        </span>
+                      );
+                    })}
+                </div>
+              )}
             </div>
 
             {/* Applicable For */}

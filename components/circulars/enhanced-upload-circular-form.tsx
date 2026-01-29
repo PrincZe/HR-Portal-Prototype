@@ -24,7 +24,8 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X, Plus } from 'lucide-react';
 import { extractTextFromPDF } from '@/lib/pdf/extract-text';
-import { generateAISummary } from '@/lib/ai/generate-summary';
+import { generateAISummaryWithTags } from '@/lib/ai/generate-summary';
+import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 
 interface EnhancedUploadCircularFormProps {
   user: User;
@@ -54,6 +55,11 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
   const [extractedText, setExtractedText] = useState<string>('');
   const [aiSummary, setAiSummary] = useState<string>('');
   const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  // AI Tags state
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagInputValue, setTagInputValue] = useState<string>('');
 
   // Determine if user is a Content Editor with topic restrictions
   const isContentEditor = user.roles?.name === 'content_editor';
@@ -196,12 +202,12 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
       setExtractedText(extractionResult.text);
       setSummaryStatus('generating');
 
-      // Step 2: Generate AI summary
-      const summaryResult = await generateAISummary(extractionResult.text);
+      // Step 2: Generate AI summary and suggested tags
+      const result = await generateAISummaryWithTags(extractionResult.text);
 
-      if (!summaryResult.success || !summaryResult.summary) {
+      if (!result.success || !result.summary) {
         // Provide specific error messages for AI failures
-        const errorMessage = summaryResult.error || '';
+        const errorMessage = result.error || '';
         let userMessage: string;
 
         if (errorMessage.toLowerCase().includes('api key') || errorMessage.toLowerCase().includes('unauthorized')) {
@@ -220,9 +226,14 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         return;
       }
 
-      setAiSummary(summaryResult.summary);
+      setAiSummary(result.summary);
+      // Set suggested tags and auto-select them
+      if (result.suggestedTags.length > 0) {
+        setSuggestedTags(result.suggestedTags);
+        setSelectedTags(result.suggestedTags);
+      }
       setSummaryStatus('success');
-      toast.success('AI summary generated successfully!');
+      toast.success('AI summary and tags generated successfully!');
     } catch (error) {
       console.error('Error generating summary:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -252,18 +263,27 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
     setSummaryError(null);
 
     try {
-      const summaryResult = await generateAISummary(extractedText);
+      const result = await generateAISummaryWithTags(extractedText);
 
-      if (!summaryResult.success || !summaryResult.summary) {
-        setSummaryError(summaryResult.error || 'Could not regenerate AI summary.');
+      if (!result.success || !result.summary) {
+        setSummaryError(result.error || 'Could not regenerate AI summary.');
         setSummaryStatus('error');
         toast.error('Failed to regenerate summary');
         return;
       }
 
-      setAiSummary(summaryResult.summary);
+      setAiSummary(result.summary);
+      // Update suggested tags and merge with existing selections
+      if (result.suggestedTags.length > 0) {
+        setSuggestedTags(result.suggestedTags);
+        // Keep any manually added tags that are not in the new suggestions
+        setSelectedTags(prev => {
+          const manualTags = prev.filter(tag => !suggestedTags.includes(tag));
+          return [...new Set([...result.suggestedTags, ...manualTags])];
+        });
+      }
       setSummaryStatus('success');
-      toast.success('AI summary regenerated!');
+      toast.success('AI summary and tags regenerated!');
     } catch (error) {
       console.error('Error regenerating summary:', error);
       setSummaryError('An unexpected error occurred.');
@@ -385,6 +405,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         issue_date: values.issue_date,
         primary_topic: values.primary_topic,
         secondary_topic: null,
+        tags: selectedTags.length > 0 ? selectedTags : null,
         status: values.status,
         notify_update: values.notify_update,
         sb_compliance: values.sb_compliance,
@@ -850,6 +871,105 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
               <p className="text-xs text-muted-foreground">
                 This summary helps users find this circular in search. It was auto-generated from the PDF content.
               </p>
+            </div>
+
+            {/* AI-Suggested Tags */}
+            <div className="space-y-2">
+              <div>
+                <FormLabel className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#17A2B8]" />
+                  Tags
+                  {suggestedTags.length > 0 && (
+                    <span className="text-xs font-normal text-muted-foreground">(AI-suggested)</span>
+                  )}
+                </FormLabel>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Tags help categorize and search for this circular. AI suggests tags based on content.
+                </p>
+              </div>
+
+              {/* Selected Tags Display */}
+              {selectedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
+                  {selectedTags.map((tagValue) => {
+                    const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
+                    const isSuggested = suggestedTags.includes(tagValue);
+                    return (
+                      <span
+                        key={tagValue}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                          isSuggested
+                            ? 'bg-[#17A2B8]/10 text-[#17A2B8] border border-[#17A2B8]/30'
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {tagInfo?.label || tagValue}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTags(prev => prev.filter(t => t !== tagValue))}
+                          className="ml-0.5 hover:text-red-600 transition-colors"
+                          aria-label={`Remove ${tagInfo?.label || tagValue} tag`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add Tag Dropdown */}
+              <div className="flex gap-2">
+                <Select
+                  value={tagInputValue}
+                  onValueChange={(value) => {
+                    if (value && !selectedTags.includes(value)) {
+                      setSelectedTags(prev => [...prev, value]);
+                    }
+                    setTagInputValue('');
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Add a tag..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECONDARY_TOPICS
+                      .filter(topic => !selectedTags.includes(topic.value))
+                      .map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.label}
+                          {suggestedTags.includes(topic.value) && (
+                            <span className="ml-2 text-xs text-[#17A2B8]">(suggested)</span>
+                          )}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick-add suggested tags if not all selected */}
+              {suggestedTags.length > 0 && suggestedTags.some(tag => !selectedTags.includes(tag)) && (
+                <div className="text-xs text-muted-foreground">
+                  <span>AI suggested: </span>
+                  {suggestedTags
+                    .filter(tag => !selectedTags.includes(tag))
+                    .map((tagValue, index, arr) => {
+                      const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
+                      return (
+                        <span key={tagValue}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTags(prev => [...prev, tagValue])}
+                            className="text-[#17A2B8] hover:underline"
+                          >
+                            + {tagInfo?.label || tagValue}
+                          </button>
+                          {index < arr.length - 1 && ', '}
+                        </span>
+                      );
+                    })}
+                </div>
+              )}
             </div>
 
             {/* Warning if no AI summary */}
