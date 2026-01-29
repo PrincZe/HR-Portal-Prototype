@@ -20,8 +20,6 @@ import { toast } from 'sonner';
 import { Loader2, Save, X, Info, Sparkles, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getAvailableTopicsForUser, canUploadCircularWithTopic } from '@/lib/access-control';
-import { extractTextFromPDF } from '@/lib/pdf/extract-text';
-import { generateAISummaryWithTags } from '@/lib/ai/generate-summary';
 
 const editCircularSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title must not exceed 255 characters'),
@@ -100,36 +98,35 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
 
       setRegenerateStatus('extracting');
 
-      // Step 2: Extract text from PDF
-      const buffer = Buffer.from(await fileData.arrayBuffer());
-      const extractionResult = await extractTextFromPDF(buffer);
-
-      if (!extractionResult.success || !extractionResult.text) {
-        setRegenerateError(extractionResult.error || 'Could not extract text from PDF');
-        setRegenerateStatus('error');
-        toast.warning('Could not extract text from PDF. You can edit the summary manually.');
-        return;
-      }
+      // Step 2: Send to API for server-side processing
+      const formData = new FormData();
+      formData.append('file', fileData, circular.file_name || 'document.pdf');
 
       setRegenerateStatus('generating');
 
-      // Step 3: Generate AI summary and tags
-      const result = await generateAISummaryWithTags(extractionResult.text);
+      const response = await fetch('/api/extract-pdf', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (!result.success || !result.summary) {
-        setRegenerateError(result.error || 'Could not generate AI summary');
+      const result = await response.json();
+
+      if (!result.success) {
+        setRegenerateError(result.error || 'Could not process PDF');
         setRegenerateStatus('error');
-        toast.warning('Could not generate AI summary. You can edit it manually.');
+        toast.warning(result.error || 'Could not generate AI summary. You can edit it manually.');
         return;
       }
 
-      // Step 4: Update the summary and tags fields
-      setAiSummary(result.summary);
-      if (result.suggestedTags.length > 0) {
+      // Update the summary and tags fields
+      if (result.summary) {
+        setAiSummary(result.summary);
+      }
+      if (result.suggestedTags && result.suggestedTags.length > 0) {
         setSuggestedTags(result.suggestedTags);
         // Merge new suggestions with existing tags
         setSelectedTags(prev => {
-          const newTags = result.suggestedTags.filter(tag => !prev.includes(tag));
+          const newTags = result.suggestedTags.filter((tag: string) => !prev.includes(tag));
           return [...prev, ...newTags];
         });
       }

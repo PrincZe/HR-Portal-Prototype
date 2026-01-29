@@ -23,8 +23,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { Upload, Loader2, FileText, X, Plus } from 'lucide-react';
-import { extractTextFromPDF } from '@/lib/pdf/extract-text';
-import { generateAISummaryWithTags } from '@/lib/ai/generate-summary';
 import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 
 interface EnhancedUploadCircularFormProps {
@@ -167,57 +165,33 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         toast.info(`Processing large file (${(file.size / 1024 / 1024).toFixed(1)} MB). This may take a moment...`);
       }
 
-      // Step 1: Extract text from PDF
-      const extractionResult = await extractTextFromPDF(file);
+      // Send file to API for server-side processing
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (!extractionResult.success || !extractionResult.text) {
+      setSummaryStatus('generating');
+      const response = await fetch('/api/extract-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
         // Provide more specific error messages
-        const errorMessage = extractionResult.error || '';
+        const errorMessage = result.error || '';
         let userMessage: string;
 
         if (errorMessage.toLowerCase().includes('encrypted') || errorMessage.toLowerCase().includes('password')) {
           userMessage = 'This PDF is password-protected. Please upload an unprotected version or add a summary manually.';
         } else if (errorMessage.toLowerCase().includes('corrupt') || errorMessage.toLowerCase().includes('invalid')) {
           userMessage = 'This PDF appears to be corrupted or invalid. Please try re-saving it or upload a different file.';
-        } else if (!extractionResult.text || extractionResult.text.trim().length < 50) {
+        } else if (errorMessage.toLowerCase().includes('scanned') || errorMessage.toLowerCase().includes('image')) {
           userMessage = 'Could not extract text from PDF. It may be scanned/image-based. Consider using OCR software first, or add a summary manually.';
-        } else {
-          userMessage = 'Could not extract text from PDF. You can add a summary manually.';
-        }
-
-        setSummaryError(userMessage);
-        setSummaryStatus('error');
-        toast.warning(userMessage);
-        return;
-      }
-
-      // Check if extracted text is too short (likely scanned/image PDF)
-      if (extractionResult.text.trim().length < 100) {
-        setSummaryError('Very little text was extracted. The PDF may be scanned/image-based. You can add a summary manually.');
-        setSummaryStatus('error');
-        toast.warning('PDF appears to be image-based. Please add a summary manually.');
-        return;
-      }
-
-      setExtractedText(extractionResult.text);
-      setSummaryStatus('generating');
-
-      // Step 2: Generate AI summary and suggested tags
-      const result = await generateAISummaryWithTags(extractionResult.text);
-
-      if (!result.success || !result.summary) {
-        // Provide specific error messages for AI failures
-        const errorMessage = result.error || '';
-        let userMessage: string;
-
-        if (errorMessage.toLowerCase().includes('api key') || errorMessage.toLowerCase().includes('unauthorized')) {
+        } else if (errorMessage.toLowerCase().includes('api key') || errorMessage.toLowerCase().includes('not configured')) {
           userMessage = 'AI service is not configured. Please contact support or add a summary manually.';
-        } else if (errorMessage.toLowerCase().includes('rate limit') || errorMessage.toLowerCase().includes('too many')) {
-          userMessage = 'AI service is temporarily busy. Please try again in a few moments or add a summary manually.';
-        } else if (errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('network')) {
-          userMessage = 'Could not reach AI service. Please check your connection and try again.';
         } else {
-          userMessage = 'Could not generate AI summary. You can add one manually.';
+          userMessage = result.error || 'Could not process PDF. You can add a summary manually.';
         }
 
         setSummaryError(userMessage);
@@ -226,12 +200,22 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
         return;
       }
 
-      setAiSummary(result.summary);
+      // Store extracted text for potential regeneration
+      if (result.extractedText) {
+        setExtractedText(result.extractedText);
+      }
+
+      // Set AI summary
+      if (result.summary) {
+        setAiSummary(result.summary);
+      }
+
       // Set suggested tags and auto-select them
-      if (result.suggestedTags.length > 0) {
+      if (result.suggestedTags && result.suggestedTags.length > 0) {
         setSuggestedTags(result.suggestedTags);
         setSelectedTags(result.suggestedTags);
       }
+
       setSummaryStatus('success');
       toast.success('AI summary and tags generated successfully!');
     } catch (error) {
@@ -263,7 +247,13 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
     setSummaryError(null);
 
     try {
-      const result = await generateAISummaryWithTags(extractedText);
+      const response = await fetch('/api/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: extractedText }),
+      });
+
+      const result = await response.json();
 
       if (!result.success || !result.summary) {
         setSummaryError(result.error || 'Could not regenerate AI summary.');
@@ -274,7 +264,7 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
 
       setAiSummary(result.summary);
       // Update suggested tags and merge with existing selections
-      if (result.suggestedTags.length > 0) {
+      if (result.suggestedTags && result.suggestedTags.length > 0) {
         setSuggestedTags(result.suggestedTags);
         // Keep any manually added tags that are not in the new suggestions
         setSelectedTags(prev => {
