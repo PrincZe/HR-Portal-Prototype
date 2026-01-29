@@ -920,9 +920,9 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   }}
                 >
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Add a tag..." />
+                    <SelectValue placeholder={`Add from ${SECONDARY_TOPICS.length - selectedTags.length} available tags...`} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]">
                     {SECONDARY_TOPICS
                       .filter(topic => !selectedTags.includes(topic.value))
                       .map((topic) => (
@@ -936,6 +936,9 @@ export function EnhancedUploadCircularForm({ user }: EnhancedUploadCircularFormP
                   </SelectContent>
                 </Select>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Select additional tags from {SECONDARY_TOPICS.length} HR categories to improve searchability.
+              </p>
 
               {/* Quick-add suggested tags if not all selected */}
               {suggestedTags.length > 0 && suggestedTags.some(tag => !selectedTags.includes(tag)) && (
