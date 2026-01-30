@@ -37,7 +37,7 @@ const ACCEPTED_FILE_TYPES = [
 ];
 
 const uploadSchema = z.object({
-  applicable_for: z.enum(['civil_service_and_sb', 'civil_service_only'], {
+  applicable_for: z.enum(['cs_and_sb', 'cs_only'], {
     message: 'Please select who this resource applies to',
   }),
   circular_type: z.enum(['hrl', 'hrops'], {
@@ -254,13 +254,13 @@ export function UploadResourcesForm({ user }: UploadResourcesFormProps) {
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="civil_service_and_sb" id="res_cs_and_sb" />
+                        <RadioGroupItem value="cs_and_sb" id="res_cs_and_sb" />
                         <label htmlFor="res_cs_and_sb" className="text-sm font-normal cursor-pointer">
                           Civil Service and Statutory Boards
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="civil_service_only" id="res_cs_only" />
+                        <RadioGroupItem value="cs_only" id="res_cs_only" />
                         <label htmlFor="res_cs_only" className="text-sm font-normal cursor-pointer">
                           Civil Service Only
                         </label>

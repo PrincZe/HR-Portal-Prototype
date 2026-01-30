@@ -32,7 +32,7 @@ const editCircularSchema = z.object({
     message: 'Please select a status',
   }),
   description: z.string().optional(),
-  applicable_for: z.enum(['civil_service_and_sb', 'civil_service_only'], {
+  applicable_for: z.enum(['cs_and_sb', 'cs_only'], {
     message: 'Please select who this circular applies to',
   }),
   sb_compliance: z.enum(['for_information', 'partial_compliance', 'full_compliance'], {
@@ -485,13 +485,13 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 mt-2">
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="civil_service_and_sb" id="cs_and_sb" />
+                        <RadioGroupItem value="cs_and_sb" id="cs_and_sb" />
                         <label htmlFor="cs_and_sb" className="text-sm font-normal cursor-pointer">
                           Civil Service and Statutory Boards
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="civil_service_only" id="cs_only" />
+                        <RadioGroupItem value="cs_only" id="cs_only" />
                         <label htmlFor="cs_only" className="text-sm font-normal cursor-pointer">
                           Civil Service Only
                         </label>
