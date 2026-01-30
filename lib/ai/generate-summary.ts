@@ -171,17 +171,16 @@ export async function generateAISuggestedTags(pdfText: string): Promise<string[]
     }
 
     // Parse the comma-separated tags, validate, and convert to labels
-    const suggestedTags = textContent.text
-      .trim()
-      .split(',')
-      .map(tag => tag.trim().toLowerCase())
-      .map(tagValue => {
-        const found = AVAILABLE_TAGS.find(t => t.value === tagValue);
-        return found ? found.label : null;
-      })
-      .filter((label): label is string => label !== null);
+    const tagLabels: string[] = [];
+    const rawTags = textContent.text.trim().split(',');
+    for (const tag of rawTags) {
+      const found = AVAILABLE_TAGS.find(t => t.value === tag.trim().toLowerCase());
+      if (found) {
+        tagLabels.push(found.label);
+      }
+    }
 
-    return suggestedTags.slice(0, 5); // Limit to 5 tags max
+    return tagLabels.slice(0, 5); // Limit to 5 tags max
   } catch (error) {
     console.error('Error generating AI tags:', error);
     return [];
@@ -241,18 +240,16 @@ export async function generateAISummaryWithTags(pdfText: string): Promise<Summar
 
     // Extract, validate, and convert tags to labels
     const tagsContent = tagsResponse.content.find((block) => block.type === 'text');
-    const suggestedTags = tagsContent?.type === 'text'
-      ? tagsContent.text
-          .trim()
-          .split(',')
-          .map(tag => tag.trim().toLowerCase())
-          .map(tagValue => {
-            const found = AVAILABLE_TAGS.find(t => t.value === tagValue);
-            return found ? found.label : null;
-          })
-          .filter((label): label is string => label !== null)
-          .slice(0, 5)
-      : [];
+    const suggestedTags: string[] = [];
+    if (tagsContent?.type === 'text') {
+      const rawTags = tagsContent.text.trim().split(',');
+      for (const tag of rawTags) {
+        const found = AVAILABLE_TAGS.find(t => t.value === tag.trim().toLowerCase());
+        if (found && suggestedTags.length < 5) {
+          suggestedTags.push(found.label);
+        }
+      }
+    }
 
     return {
       summary,
