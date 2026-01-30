@@ -4,16 +4,14 @@ import { SECONDARY_TOPICS } from '@/lib/constants/topics';
 const MAX_INPUT_CHARS = 15000;
 
 const SUMMARY_PROMPT = `You are an expert HR policy analyst for the Singapore Public Service.
-Analyze the following government circular/document and provide a concise summary (approximately 200 words).
+Analyze the following government circular/document and provide a brief summary (2-3 sentences, around 50-80 words maximum).
 
 Focus on:
-1. Main policy changes or announcements
-2. Key procedures and requirements
-3. Important searchable terms and concepts
-4. Who this applies to (which officers, grades, or agencies)
-5. Effective dates or implementation timelines
+1. The main policy change or announcement
+2. Who it applies to
+3. Key action or effective date (if mentioned)
 
-Format the summary as clear, scannable prose. Include relevant acronyms and policy terms that would help with search discovery.
+Keep it concise for search result display. Include relevant acronyms.
 
 Document content:
 `;
@@ -172,13 +170,16 @@ export async function generateAISuggestedTags(pdfText: string): Promise<string[]
       return [];
     }
 
-    // Parse the comma-separated tags and validate against available tags
-    const validTagValues: string[] = AVAILABLE_TAGS.map(t => t.value);
+    // Parse the comma-separated tags, validate, and convert to labels
     const suggestedTags = textContent.text
       .trim()
       .split(',')
       .map(tag => tag.trim().toLowerCase())
-      .filter(tag => validTagValues.includes(tag));
+      .map(tagValue => {
+        const found = AVAILABLE_TAGS.find(t => t.value === tagValue);
+        return found ? found.label : null;
+      })
+      .filter((label): label is string => label !== null);
 
     return suggestedTags.slice(0, 5); // Limit to 5 tags max
   } catch (error) {
@@ -224,7 +225,7 @@ export async function generateAISummaryWithTags(pdfText: string): Promise<Summar
     const [summaryResponse, tagsResponse] = await Promise.all([
       client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
+        max_tokens: 256,
         messages: [{ role: 'user', content: SUMMARY_PROMPT + truncatedText }],
       }),
       client.messages.create({
@@ -238,15 +239,18 @@ export async function generateAISummaryWithTags(pdfText: string): Promise<Summar
     const summaryContent = summaryResponse.content.find((block) => block.type === 'text');
     const summary = summaryContent?.type === 'text' ? summaryContent.text.trim() : '';
 
-    // Extract and validate tags
+    // Extract, validate, and convert tags to labels
     const tagsContent = tagsResponse.content.find((block) => block.type === 'text');
-    const validTagValues: string[] = AVAILABLE_TAGS.map(t => t.value);
     const suggestedTags = tagsContent?.type === 'text'
       ? tagsContent.text
           .trim()
           .split(',')
           .map(tag => tag.trim().toLowerCase())
-          .filter(tag => validTagValues.includes(tag))
+          .map(tagValue => {
+            const found = AVAILABLE_TAGS.find(t => t.value === tagValue);
+            return found ? found.label : null;
+          })
+          .filter((label): label is string => label !== null)
           .slice(0, 5)
       : [];
 
