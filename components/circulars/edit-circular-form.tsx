@@ -466,37 +466,6 @@ export function EditCircularForm({ user, circular }: EditCircularFormProps) {
                 </p>
               </div>
 
-              {/* Quick-add suggested tags */}
-              {suggestedTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {suggestedTags.map((tagValue) => {
-                    const tagInfo = SECONDARY_TOPICS.find(t => t.value === tagValue);
-                    const isSelected = selectedTags.includes(tagValue);
-                    return (
-                      <button
-                        key={tagValue}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedTags(prev => prev.filter(t => t !== tagValue));
-                          } else {
-                            setSelectedTags(prev => [...prev, tagValue]);
-                          }
-                        }}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          isSelected
-                            ? 'bg-[#17A2B8] text-white'
-                            : 'bg-[#17A2B8]/10 text-[#17A2B8] border border-[#17A2B8]/30 hover:bg-[#17A2B8]/20'
-                        }`}
-                      >
-                        {isSelected && <span className="mr-0.5">✓</span>}
-                        {tagInfo?.label || tagValue}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
               {/* Tag Input - type to add */}
               <TagInput
                 value={selectedTags}
